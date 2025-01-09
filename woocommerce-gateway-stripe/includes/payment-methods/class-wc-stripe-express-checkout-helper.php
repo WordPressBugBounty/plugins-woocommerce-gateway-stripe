@@ -50,16 +50,13 @@ class WC_Stripe_Express_Checkout_Helper {
 	 * @return bool
 	 */
 	public function is_authentication_required() {
-		// If guest checkout is disabled and account creation upon checkout is not possible, authentication is required.
-		if ( 'no' === get_option( 'woocommerce_enable_guest_checkout', 'yes' ) && ! $this->is_account_creation_possible() ) {
-			return true;
-		}
-		// If cart contains subscription and account creation upon checkout is not posible, authentication is required.
-		if ( $this->has_subscription_product() && ! $this->is_account_creation_possible() ) {
-			return true;
+		// If guest checkout is enabled, authentication is not required.
+		if ( 'yes' === get_option( 'woocommerce_enable_guest_checkout', 'yes' ) ) {
+			return false;
 		}
 
-		return false;
+		// If guest checkout is disabled and account creation upon checkout is not possible, authentication is required.
+		return 'no' === get_option( 'woocommerce_enable_guest_checkout', 'yes' ) && ! $this->is_account_creation_possible();
 	}
 
 	/**
@@ -68,13 +65,18 @@ class WC_Stripe_Express_Checkout_Helper {
 	 * @return bool
 	 */
 	public function is_account_creation_possible() {
-		// If automatically generate username/password are disabled, we can not include any of those fields,
-		// during express checkout. So account creation is not possible.
-		return (
-			'yes' === get_option( 'woocommerce_enable_signup_and_login_from_checkout', 'no' ) &&
+		// Check if account creation is allowed on checkout.
+		$is_signup_on_checkout_allowed =
+			'yes' === get_option( 'woocommerce_enable_signup_and_login_from_checkout', 'no' ) ||
+			( $this->has_subscription_product() &&
+				'yes' === get_option( 'woocommerce_enable_signup_from_checkout_for_subscriptions', 'no' ) );
+
+		// Account creation is not possible for express checkout if we cannot automatically generate the username and password.
+		$username_password_generation_enabled =
 			'yes' === get_option( 'woocommerce_registration_generate_username', 'yes' ) &&
-			'yes' === get_option( 'woocommerce_registration_generate_password', 'yes' )
-		);
+			'yes' === get_option( 'woocommerce_registration_generate_password', 'yes' );
+
+		return $is_signup_on_checkout_allowed && $username_password_generation_enabled;
 	}
 
 	/**
@@ -83,7 +85,7 @@ class WC_Stripe_Express_Checkout_Helper {
 	 * @return  string
 	 */
 	public function get_button_type() {
-		return isset( $this->stripe_settings['payment_request_button_type'] ) ? $this->stripe_settings['payment_request_button_type'] : 'default';
+		return isset( $this->stripe_settings['express_checkout_button_type'] ) ? $this->stripe_settings['express_checkout_button_type'] : 'default';
 	}
 
 	/**
@@ -92,7 +94,7 @@ class WC_Stripe_Express_Checkout_Helper {
 	 * @return  string
 	 */
 	public function get_button_theme() {
-		return isset( $this->stripe_settings['payment_request_button_theme'] ) ? $this->stripe_settings['payment_request_button_theme'] : 'dark';
+		return isset( $this->stripe_settings['express_checkout_button_theme'] ) ? $this->stripe_settings['express_checkout_button_theme'] : 'dark';
 	}
 
 	/**
@@ -101,7 +103,7 @@ class WC_Stripe_Express_Checkout_Helper {
 	 * @return  string
 	 */
 	public function get_button_height() {
-		$height = isset( $this->stripe_settings['payment_request_button_size'] ) ? $this->stripe_settings['payment_request_button_size'] : 'default';
+		$height = isset( $this->stripe_settings['express_checkout_button_size'] ) ? $this->stripe_settings['express_checkout_button_size'] : 'default';
 		if ( 'small' === $height ) {
 			return '40';
 		}
@@ -119,7 +121,7 @@ class WC_Stripe_Express_Checkout_Helper {
 	 * @return string
 	 */
 	public function get_button_radius() {
-		$height = isset( $this->stripe_settings['payment_request_button_size'] ) ? $this->stripe_settings['payment_request_button_size'] : 'default';
+		$height = isset( $this->stripe_settings['express_checkout_button_size'] ) ? $this->stripe_settings['express_checkout_button_size'] : 'default';
 		if ( 'small' === $height ) {
 			return '2';
 		}
@@ -320,13 +322,34 @@ class WC_Stripe_Express_Checkout_Helper {
 	public function get_normalized_postal_code( $postcode, $country ) {
 		/**
 		 * Currently, Apple Pay truncates the UK and Canadian postal codes to the first 4 and 3 characters respectively
+		 * Apple Pay also truncates Canadian postal codes to the first 4 characters.
 		 * when passing it back from the shippingcontactselected object. This causes WC to invalidate
 		 * the postal code and not calculate shipping zones correctly.
 		 */
 		if ( 'GB' === $country ) {
-			// Replaces a redacted string with something like LN10***.
-			return str_pad( preg_replace( '/\s+/', '', $postcode ), 7, '*' );
+			// UK Postcodes returned from Apple Pay can be alpha numeric 2 chars, 3 chars, or 4 chars long will optionally have a trailing space,
+			// depending on whether the customer put a space in their postcode between the outcode and incode part.
+			// See https://assets.publishing.service.gov.uk/media/5a7b997d40f0b62826a049e0/ILRSpecification2013_14Appendix_C_Dec2012_v1.pdf for more details.
+
+			// Here is a table showing the functionality by example:
+			//  Original  | Apple Pay |  Normalized
+			// 'LN10 1AA' |  'LN10 '  |  'LN10 ***'
+			// 'LN101AA'  |  'LN10'   |  'LN10 ***'
+			// 'W10 2AA'  |  'W10 '   |  'W10 ***'
+			// 'W102AA'   |  'W10'    |  'W10 ***'
+			// 'N2 3AA    |  'N2 '    |  'N2 ***'
+			// 'N23AA     |  'N2'     |  'N2 ***'
+
+			$spaceless_postcode = preg_replace( '/\s+/', '', $postcode );
+
+			if ( strlen( $spaceless_postcode ) < 5 ) {
+				// Always reintroduce the space so that Shipping Zones regex like 'N1 *' work to match N1 postcodes like N1 1AA, but don't match N10 postcodes like N10 1AA
+				return $spaceless_postcode . ' ***';
+			}
+
+			return $postcode; // 5 or more chars means it probably wasn't redacted and will likely validate unchanged.
 		}
+
 		if ( 'CA' === $country ) {
 			// Replaces a redacted string with something like L4Y***.
 			return str_pad( preg_replace( '/\s+/', '', $postcode ), 6, '*' );
@@ -368,9 +391,9 @@ class WC_Stripe_Express_Checkout_Helper {
 			return false;
 		}
 
-		// If the cart is not available we don't have any unsupported products in the cart, so we
+		// If the cart is not available or if the cart is empty we don't have any unsupported products in the cart, so we
 		// return true. This can happen e.g. when loading the cart or checkout blocks in Gutenberg.
-		if ( is_null( WC()->cart ) ) {
+		if ( is_null( WC()->cart ) || WC()->cart->is_empty() ) {
 			return true;
 		}
 
@@ -1306,18 +1329,18 @@ class WC_Stripe_Express_Checkout_Helper {
 	 */
 	public function get_button_locations() {
 		// If the locations have not been set return the default setting.
-		if ( ! isset( $this->stripe_settings['payment_request_button_locations'] ) ) {
+		if ( ! isset( $this->stripe_settings['express_checkout_button_locations'] ) ) {
 			return [ 'product', 'cart' ];
 		}
 
 		// If all locations are removed through the settings UI the location config will be set to
 		// an empty string "". If that's the case (and if the settings are not an array for any
 		// other reason) we should return an empty array.
-		if ( ! is_array( $this->stripe_settings['payment_request_button_locations'] ) ) {
+		if ( ! is_array( $this->stripe_settings['express_checkout_button_locations'] ) ) {
 			return [];
 		}
 
-		return $this->stripe_settings['payment_request_button_locations'];
+		return $this->stripe_settings['express_checkout_button_locations'];
 	}
 
 	/**
@@ -1328,7 +1351,7 @@ class WC_Stripe_Express_Checkout_Helper {
 	 * @return boolean
 	 */
 	public function is_express_checkout_enabled() {
-		return isset( $this->stripe_settings['payment_request'] ) && 'yes' === $this->stripe_settings['payment_request'];
+		return isset( $this->stripe_settings['express_checkout'] ) && 'yes' === $this->stripe_settings['express_checkout'];
 	}
 
 	/**
