@@ -106,17 +106,25 @@ abstract class WC_Stripe_UPE_Payment_Method extends WC_Payment_Gateway {
 	public $testmode;
 
 	/**
+	 * Wether this payment method supports deferred intent creation.
+	 *
+	 * @var bool
+	 */
+	protected $supports_deferred_intent;
+
+	/**
 	 * Create instance of payment method
 	 */
 	public function __construct() {
 		$main_settings     = WC_Stripe_Helper::get_stripe_settings();
 		$is_stripe_enabled = ! empty( $main_settings['enabled'] ) && 'yes' === $main_settings['enabled'];
 
-		$this->enabled    = $is_stripe_enabled && in_array( static::STRIPE_ID, $this->get_option( 'upe_checkout_experience_accepted_payments', [ WC_Stripe_Payment_Methods::CARD ] ), true ) ? 'yes' : 'no'; // @phpstan-ignore-line (STRIPE_ID is defined in classes using this class)
-		$this->id         = WC_Gateway_Stripe::ID . '_' . static::STRIPE_ID; // @phpstan-ignore-line (STRIPE_ID is defined in classes using this class)
-		$this->has_fields = true;
-		$this->testmode   = WC_Stripe_Mode::is_test();
-		$this->supports   = [ 'products', 'refunds' ];
+		$this->enabled                  = $is_stripe_enabled && in_array( static::STRIPE_ID, $this->get_option( 'upe_checkout_experience_accepted_payments', [ WC_Stripe_Payment_Methods::CARD ] ), true ) ? 'yes' : 'no'; // @phpstan-ignore-line (STRIPE_ID is defined in classes using this class)
+		$this->id                       = WC_Gateway_Stripe::ID . '_' . static::STRIPE_ID; // @phpstan-ignore-line (STRIPE_ID is defined in classes using this class)
+		$this->has_fields               = true;
+		$this->testmode                 = WC_Stripe_Mode::is_test();
+		$this->supports                 = [ 'products', 'refunds' ];
+		$this->supports_deferred_intent = true;
 	}
 
 	/**
@@ -241,7 +249,7 @@ abstract class WC_Stripe_UPE_Payment_Method extends WC_Payment_Gateway {
 				if ( ! in_array( $order_currency, $currencies, true ) ) {
 					return false;
 				}
-			} else if ( ! in_array( $current_store_currency, $currencies, true ) ) {
+			} elseif ( ! in_array( $current_store_currency, $currencies, true ) ) {
 				return false;
 			}
 		}
@@ -556,7 +564,7 @@ abstract class WC_Stripe_UPE_Payment_Method extends WC_Payment_Gateway {
 			return $empty_value;
 		}
 
-		if ( ! is_null( $empty_value ) && '' === $main_settings[ $key ] ) {
+		if ( isset( $main_settings[ $key ] ) && ! is_null( $empty_value ) && '' === $main_settings[ $key ] ) {
 			return $empty_value;
 		}
 
@@ -704,7 +712,7 @@ abstract class WC_Stripe_UPE_Payment_Method extends WC_Payment_Gateway {
 		$id = 'wc-' . $this->id . '-new-payment-method';
 		?>
 		<fieldset <?php echo $force_checked ? 'style="display:none;"' : ''; /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped */ ?>>
-			<p class="form-row woocommerce-SavedPaymentMethods-saveNew">
+			<p class="form-row woocommerce-SavedPaymentMethods-saveNew" <?php echo ! is_user_logged_in() ? 'style="display:none;"' : ''; /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped */ ?>>
 				<input id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $id ); ?>" type="checkbox" value="true" style="width:auto;" <?php echo $force_checked ? 'checked' : ''; /* phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped */ ?> />
 				<label for="<?php echo esc_attr( $id ); ?>" style="display:inline;">
 					<?php echo esc_html( apply_filters( 'wc_stripe_save_to_account_text', __( 'Save payment information to my account for future purchases.', 'woocommerce-gateway-stripe' ) ) ); ?>
@@ -725,5 +733,14 @@ abstract class WC_Stripe_UPE_Payment_Method extends WC_Payment_Gateway {
 		$this->view_transaction_url = WC_Stripe_Helper::get_transaction_url( $this->testmode );
 
 		return parent::get_transaction_url( $order );
+	}
+
+	/**
+	 * Whether this payment method supports deferred intent creation.
+	 *
+	 * @return bool
+	 */
+	public function supports_deferred_intent() {
+		return $this->supports_deferred_intent;
 	}
 }
