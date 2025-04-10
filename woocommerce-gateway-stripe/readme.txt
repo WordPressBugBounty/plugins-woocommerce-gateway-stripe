@@ -4,7 +4,7 @@ Tags: credit card, stripe, apple pay, payment request, google pay, sepa, bancont
 Requires at least: 6.5
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 9.3.1
+Stable tag: 9.3.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Attributions: thorsten-stripe
@@ -110,11 +110,7 @@ If you get stuck, you can ask for help in the [Plugin Forum](https://wordpress.o
 
 == Changelog ==
 
-= 9.3.1 - 2025-03-14 =
-* Fix - Temporarily disables the subscriptions detached notice feature due to long loading times on stores with many subscriptions.
-* Fix - Update ACH capability check key
-* Fix - Update legacy checkout documentation links and deprecation notice display logic
-* Fix - Fixes an issue where the order signature retrieval method could throw a fatal error when the received order parameter is actually an OrderRefund object (instead of a WC_Order).
-* Fix - Fixes an error with the `filter_thankyou_order_received_text` filter when it does not receive a valid WC_Order instance.
+= 9.3.2 - 2025-04-10 =
+* Fix - Fix express checkout for block cart and block checkout for WooCommerce 9.8.0+.
 
 [See changelog for all versions](https://raw.githubusercontent.com/woocommerce/woocommerce-gateway-stripe/trunk/changelog.txt).
