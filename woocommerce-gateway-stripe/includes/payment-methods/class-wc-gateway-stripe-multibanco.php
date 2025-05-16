@@ -1,7 +1,4 @@
 <?php
-
-use Automattic\WooCommerce\Enums\OrderStatus;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -229,7 +226,7 @@ class WC_Gateway_Stripe_Multibanco extends WC_Stripe_Payment_Gateway {
 
 		$payment_method = $order->get_payment_method();
 
-		if ( ! $sent_to_admin && 'stripe_multibanco' === $payment_method && $order->has_status( OrderStatus::ON_HOLD ) ) {
+		if ( ! $sent_to_admin && 'stripe_multibanco' === $payment_method && $order->has_status( 'on-hold' ) ) {
 			WC_Stripe_Logger::log( 'Sending multibanco email for order #' . $order_id );
 
 			$this->get_instructions( $order, $plain_text );
@@ -370,7 +367,7 @@ class WC_Gateway_Stripe_Multibanco extends WC_Stripe_Payment_Gateway {
 			$this->save_instructions( $order, $response );
 
 			// Mark as on-hold (we're awaiting the payment)
-			$order->update_status( OrderStatus::ON_HOLD, __( 'Awaiting Multibanco payment', 'woocommerce-gateway-stripe' ) );
+			$order->update_status( 'on-hold', __( 'Awaiting Multibanco payment', 'woocommerce-gateway-stripe' ) );
 
 			// Reduce stock levels
 			wc_reduce_stock_levels( $order_id );
@@ -393,7 +390,7 @@ class WC_Gateway_Stripe_Multibanco extends WC_Stripe_Payment_Gateway {
 			if ( $order->has_status(
 				apply_filters(
 					'wc_stripe_allowed_payment_processing_statuses',
-					[ OrderStatus::PENDING, OrderStatus::FAILED ],
+					[ 'pending', 'failed' ],
 					$order
 				)
 			) ) {

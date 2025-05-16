@@ -1,7 +1,4 @@
 <?php
-
-use Automattic\WooCommerce\Enums\OrderStatus;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -145,7 +142,7 @@ class WC_Gateway_Stripe extends WC_Stripe_Payment_Gateway {
 	 */
 	public function get_title() {
 		// Change the title on the payment methods settings page to include the number of enabled payment methods.
-		if ( ! WC_Stripe_Feature_Flags::is_upe_checkout_enabled() && isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] && isset( $_GET['tab'] ) && 'checkout' === $_GET['tab'] ) {
+		if ( ! WC_Stripe_Feature_Flags::is_upe_checkout_enabled() && isset( $_GET['page'] ) && 'wc-settings' === $_GET['page'] ) {
 			$enabled_payment_methods_count = count( WC_Stripe_Helper::get_legacy_enabled_payment_method_ids() );
 			$this->title                   = $enabled_payment_methods_count ?
 				/* translators: $1. Count of enabled payment methods. */
@@ -205,7 +202,7 @@ class WC_Gateway_Stripe extends WC_Stripe_Payment_Gateway {
 	 * Initialise Gateway Settings Form Fields
 	 */
 	public function init_form_fields() {
-		$this->form_fields = require __DIR__ . '/admin/stripe-settings.php';
+		$this->form_fields = require dirname( __FILE__ ) . '/admin/stripe-settings.php';
 	}
 
 	/**
@@ -225,9 +222,11 @@ class WC_Gateway_Stripe extends WC_Stripe_Payment_Gateway {
 		if ( parent::is_valid_pay_for_order_endpoint() ) {
 			$order      = wc_get_order( wc_clean( $wp->query_vars['order-pay'] ) );
 			$user_email = $order->get_billing_email();
-		} elseif ( $user->ID ) {
+		} else {
+			if ( $user->ID ) {
 				$user_email = get_user_meta( $user->ID, 'billing_email', true );
 				$user_email = $user_email ? $user_email : $user->user_email;
+			}
 		}
 
 		if ( is_add_payment_method_page() ) {
@@ -536,7 +535,7 @@ class WC_Gateway_Stripe extends WC_Stripe_Payment_Gateway {
 			do_action( 'wc_gateway_stripe_process_payment_error', $e, $order );
 
 			/* translators: error message */
-			$order->update_status( OrderStatus::FAILED );
+			$order->update_status( 'failed' );
 
 			return [
 				'result'   => 'fail',
@@ -645,7 +644,7 @@ class WC_Gateway_Stripe extends WC_Stripe_Payment_Gateway {
 		}
 
 		sleep( $this->retry_interval );
-		++$this->retry_interval;
+		$this->retry_interval++;
 
 		return $this->process_payment( $order->get_id(), true, $force_save_source, $response->error, $previous_error, $use_order_source );
 	}
@@ -889,7 +888,7 @@ class WC_Gateway_Stripe extends WC_Stripe_Payment_Gateway {
 		if ( ! $order->has_status(
 			apply_filters(
 				'wc_stripe_allowed_payment_processing_statuses',
-				[ OrderStatus::PENDING, OrderStatus::FAILED ],
+				[ 'pending', 'failed' ],
 				$order
 			)
 		) ) {
@@ -958,7 +957,7 @@ class WC_Gateway_Stripe extends WC_Stripe_Payment_Gateway {
 	 */
 	public function failed_sca_auth( $order, $intent ) {
 		// If the order has already failed, do not repeat the same message.
-		if ( $order->has_status( OrderStatus::FAILED ) ) {
+		if ( $order->has_status( 'failed' ) ) {
 			return;
 		}
 
@@ -967,7 +966,7 @@ class WC_Gateway_Stripe extends WC_Stripe_Payment_Gateway {
 			/* translators: 1) The error message that was received from Stripe. */
 			? sprintf( __( 'Stripe SCA authentication failed. Reason: %s', 'woocommerce-gateway-stripe' ), $intent->last_payment_error->message )
 			: __( 'Stripe SCA authentication failed.', 'woocommerce-gateway-stripe' );
-		$order->update_status( OrderStatus::FAILED, $status_message );
+		$order->update_status( 'failed', $status_message );
 	}
 
 	/**
@@ -1005,7 +1004,7 @@ class WC_Gateway_Stripe extends WC_Stripe_Payment_Gateway {
 		$new_test_secret_key      = $this->get_option( 'test_secret_key' );
 
 		// Checks whether a value has transitioned from a non-empty value to a new one.
-		$has_changed = function ( $old_value, $new_value ) {
+		$has_changed = function( $old_value, $new_value ) {
 			return ! empty( $old_value ) && ( $old_value !== $new_value );
 		};
 
@@ -1217,17 +1216,5 @@ class WC_Gateway_Stripe extends WC_Stripe_Payment_Gateway {
 		}
 
 		return $this->validate_text_field( $field_key, $field_value );
-	}
-
-	/**
-	 * Returns whether Google Pay and Apple Pay (PRBs) are enabled,
-	 * for the legacy checkout.
-	 *
-	 * WC_Stripe_UPE_Payment_Gateway overrides this method.
-	 *
-	 * @return bool
-	 */
-	public function is_payment_request_enabled() {
-		return 'yes' === $this->get_option( 'payment_request' );
 	}
 }

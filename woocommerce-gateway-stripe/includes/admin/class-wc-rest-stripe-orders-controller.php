@@ -3,8 +3,6 @@
  * Class WC_REST_Stripe_Orders_Controller
  */
 
-use Automattic\WooCommerce\Enums\OrderStatus;
-
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -113,7 +111,7 @@ class WC_REST_Stripe_Orders_Controller extends WC_Stripe_REST_Base_Controller {
 		}
 
 		// Validate order status before creating customer.
-		$disallowed_order_statuses = apply_filters( 'wc_stripe_create_customer_disallowed_order_statuses', [ OrderStatus::COMPLETED, OrderStatus::CANCELLED, OrderStatus::REFUNDED, OrderStatus::FAILED ] );
+		$disallowed_order_statuses = apply_filters( 'wc_stripe_create_customer_disallowed_order_statuses', [ 'completed', 'cancelled', 'refunded', 'failed' ] );
 		if ( $order->has_status( $disallowed_order_statuses ) ) {
 			return new WP_Error( 'wc_stripe_invalid_order_status', __( 'Invalid order status', 'woocommerce-gateway-stripe' ), [ 'status' => 400 ] );
 		}
@@ -221,7 +219,7 @@ class WC_REST_Stripe_Orders_Controller extends WC_Stripe_REST_Base_Controller {
 			}
 
 			// Successfully captured.
-			$order->update_status( OrderStatus::COMPLETED );
+			$order->update_status( 'completed' );
 			return rest_ensure_response(
 				[
 					'status' => $result->status,
