@@ -17,11 +17,53 @@ class WC_Stripe_API {
 	const STRIPE_API_VERSION = '2024-06-20';
 
 	/**
+	 * The test mode invalid API keys option key.
+	 *
+	 * @var string
+	 */
+	const TEST_MODE_INVALID_API_KEYS_OPTION_KEY = 'wc_stripe_test_invalid_api_keys_detected';
+
+	/**
+	 * The live mode invalid API keys option key.
+	 *
+	 * @var string
+	 */
+	const LIVE_MODE_INVALID_API_KEYS_OPTION_KEY = 'wc_stripe_live_invalid_api_keys_detected';
+
+	/**
 	 * Secret API Key.
 	 *
 	 * @var string
 	 */
 	private static $secret_key = '';
+
+	/**
+	 * Instance of WC_Stripe_API.
+	 *
+	 * @var WC_Stripe_API
+	 */
+	private static $instance;
+
+	/**
+	 * Get instance of WC_Stripe_API.
+	 *
+	 * @return WC_Stripe_API
+	 */
+	public static function get_instance() {
+		if ( ! isset( self::$instance ) ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	/**
+	 * Set instance of WC_Stripe_API.
+	 *
+	 * @param WC_Stripe_API $instance
+	 */
+	public static function set_instance( $instance ) {
+		self::$instance = $instance;
+	}
 
 	/**
 	 * Set secret API Key.
@@ -203,6 +245,13 @@ class WC_Stripe_API {
 	 * @param string $api
 	 */
 	public static function retrieve( $api ) {
+		// If we have an option flag indicating that the secret key is not valid, we don't attempt the API call and we return an error.
+		$invalid_api_keys_option_key = WC_Stripe_Mode::is_test() ? self::TEST_MODE_INVALID_API_KEYS_OPTION_KEY : self::LIVE_MODE_INVALID_API_KEYS_OPTION_KEY;
+		$invalid_api_keys_detected = get_option( $invalid_api_keys_option_key );
+		if ( $invalid_api_keys_detected ) {
+			return null; // The UI expects this empty response in case of invalid API keys.
+		}
+
 		WC_Stripe_Logger::log( "{$api}" );
 
 		$response = wp_safe_remote_get(
@@ -213,6 +262,18 @@ class WC_Stripe_API {
 				'timeout' => 70,
 			]
 		);
+
+		// If we get a 401 error, we know the secret key is not valid.
+		if ( is_array( $response ) && isset( $response['response'] ) && is_array( $response['response'] ) && isset( $response['response']['code'] ) && 401 === $response['response']['code'] ) {
+			// We save a flag in the options to avoid making calls until the secret key gets updated.
+			update_option( $invalid_api_keys_option_key, true );
+			update_option( $invalid_api_keys_option_key . '_at', time() );
+
+			// We delete the transient for the account data to trigger the not-connected UI in the admin dashboard.
+			delete_transient( WC_Stripe_Mode::is_test() ? WC_Stripe_Account::TEST_ACCOUNT_OPTION : WC_Stripe_Account::LIVE_ACCOUNT_OPTION );
+
+			return null; // The UI expects this empty response in case of invalid API keys.
+		}
 
 		if ( is_wp_error( $response ) || empty( $response['body'] ) ) {
 			WC_Stripe_Logger::log( 'Error Response: ' . print_r( $response, true ) );
@@ -434,5 +495,27 @@ class WC_Stripe_API {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get the payment method configuration.
+	 *
+	 * @return array The response from the API request.
+	 */
+	public function get_payment_method_configurations() {
+		return self::retrieve( 'payment_method_configurations' );
+	}
+
+	/**
+	 * Update the payment method configuration.
+	 *
+	 * @param array $payment_method_configurations The payment method configurations to update.
+	 */
+	public function update_payment_method_configurations( $id, $payment_method_configurations ) {
+		$response = self::request(
+			$payment_method_configurations,
+			'payment_method_configurations/' . $id
+		);
+		return $response;
 	}
 }

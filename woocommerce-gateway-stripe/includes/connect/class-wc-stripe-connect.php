@@ -183,6 +183,11 @@ if ( ! class_exists( 'WC_Stripe_Connect' ) ) {
 			update_option( 'wc_stripe_' . $prefix . 'oauth_failed_attempts', 0 );
 			update_option( 'wc_stripe_' . $prefix . 'oauth_last_failed_at', '' );
 
+			// Clear the invalid API keys transient.
+			$invalid_api_keys_option_key = $is_test ? WC_Stripe_API::TEST_MODE_INVALID_API_KEYS_OPTION_KEY : WC_Stripe_API::LIVE_MODE_INVALID_API_KEYS_OPTION_KEY;
+			update_option( $invalid_api_keys_option_key, false );
+			update_option( $invalid_api_keys_option_key . '_at', time() );
+
 			if ( 'app' === $type ) {
 				// Stripe App OAuth access_tokens expire after 1 hour:
 				// https://docs.stripe.com/stripe-apps/api-authentication/oauth#refresh-access-token
@@ -197,6 +202,17 @@ if ( ! class_exists( 'WC_Stripe_Connect' ) ) {
 				WC_Stripe::get_instance()->account->configure_webhooks( $is_test ? 'test' : 'live', $secret_key );
 			} catch ( Exception $e ) {
 				return new WP_Error( 'wc_stripe_webhook_error', $e->getMessage() );
+			}
+
+			// If we are already using the UPE gateway, update the PMC with the currently enabled payment methods.
+			$gateway = WC_Stripe::get_instance()->get_main_stripe_gateway();
+			if ( $gateway instanceof WC_Stripe_UPE_Payment_Gateway ) {
+				// The UPE accepted payment list does not include Apple Pay/Google Pay, but PMC does, so we need to add them (if they are enabled).
+				$enabled_payment_methods = array_merge(
+					$options['upe_checkout_experience_accepted_payments'],
+					$gateway->is_payment_request_enabled() ? [ WC_Stripe_Payment_Methods::APPLE_PAY, WC_Stripe_Payment_Methods::GOOGLE_PAY ] : []
+				);
+				$gateway->update_enabled_payment_methods( $enabled_payment_methods );
 			}
 
 			return $result;
