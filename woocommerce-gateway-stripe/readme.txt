@@ -4,7 +4,7 @@ Tags: credit card, stripe, payments, woocommerce, woo
 Requires at least: 6.6
 Tested up to: 6.8.2
 Requires PHP: 7.4
-Stable tag: 9.6.0
+Stable tag: 9.7.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Attributions: thorsten-stripe
@@ -109,6 +109,16 @@ If you get stuck, you can ask for help in the [Plugin Forum](https://wordpress.o
 6. Get started with no additional hardware using Tap to Pay on iPhone, or Tap to Pay on Android.
 
 == Changelog ==
+
+= 9.7.1 - 2025-07-28 =
+
+* Fix - Fix fatal when processing setup intents for free subscriptions via webhooks
+* Fix - Fix required field error message and PHP warning for custom checkout fields that don't have a label
+* Add - Add state mapping for Lithuania in express checkout
+* Fix - Prevent multiple save appearance AJAX calls on Block Checkout
+* Tweak - Check for checkout validation error before creating a payment method in Stripe
+* Dev - Fix WooCommerce version fetching in GitHub workflows
+* Dev - Fix failing test cases associated with WooCommerce 10.0.x
 
 = 9.7.0 - 2025-07-21 =
 
