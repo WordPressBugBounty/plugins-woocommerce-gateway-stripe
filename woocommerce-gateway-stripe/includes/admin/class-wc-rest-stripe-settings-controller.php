@@ -80,11 +80,6 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 						'type'              => 'boolean',
 						'validate_callback' => 'rest_validate_request_arg',
 					],
-					'oc_title'                         => [
-						'description'       => __( 'The default title to show above the Optimized Checkout element.', 'woocommerce-gateway-stripe' ),
-						'type'              => 'string',
-						'validate_callback' => 'rest_validate_request_arg',
-					],
 					'amazon_pay_button_size'           => [
 						'description'       => __( 'Express checkout button sizes.', 'woocommerce-gateway-stripe' ),
 						'type'              => 'string',
@@ -247,7 +242,6 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 				'is_debug_log_enabled'                     => 'yes' === $this->gateway->get_option( 'logging' ),
 				'is_upe_enabled'                           => $is_upe_enabled,
 				'is_oc_enabled'                            => 'yes' === $this->gateway->get_option( 'optimized_checkout_element' ),
-				'oc_title'                                 => $this->gateway->get_validated_option( 'optimized_checkout_element_title' ),
 				'is_pmc_enabled'                           => 'yes' === $this->gateway->get_option( 'pmc_enabled' ),
 			]
 		);
@@ -300,7 +294,11 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 		$is_upe_enabled               = $request->get_param( 'is_upe_enabled' );
 		$is_payment_request_enabled   = $request->get_param( 'is_payment_request_enabled' );
 
-		if ( $is_upe_enabled && $is_payment_request_enabled ) {
+		// Card is required for Apple Pay and Google Pay.
+		if ( $is_upe_enabled &&
+			 $is_payment_request_enabled &&
+			 in_array( WC_Stripe_Payment_Methods::CARD, $payment_method_ids_to_enable, true )
+		) {
 			$payment_method_ids_to_enable = array_merge(
 				$payment_method_ids_to_enable,
 				[ WC_Stripe_Payment_Methods::APPLE_PAY, WC_Stripe_Payment_Methods::GOOGLE_PAY ]
@@ -537,7 +535,6 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 	private function update_oc_settings( WP_REST_Request $request ) {
 		$attributes = [
 			'is_oc_enabled' => 'optimized_checkout_element',
-			'oc_title'      => 'optimized_checkout_element_title',
 		];
 		foreach ( $attributes as $request_key => $attribute ) {
 			$value = $request->get_param( $request_key );
@@ -554,7 +551,10 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 			if ( 'is_oc_enabled' === $request_key && $value !== $current_value ) {
 				wc_admin_record_tracks_event(
 					$value ? 'wcstripe_oc_enabled' : 'wcstripe_oc_disabled',
-					[ 'test_mode' => WC_Stripe_Mode::is_test() ? 1 : 0 ]
+					[
+						'test_mode' => WC_Stripe_Mode::is_test() ? 1 : 0,
+						'source'    => 'settings_rest_api',
+					]
 				);
 			}
 		}
@@ -617,7 +617,8 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 	 */
 	public function dismiss_notice( WP_REST_Request $request ) {
 		if ( null === $request->get_param( 'wc_stripe_show_customization_notice' )
-			&& null === $request->get_param( 'wc_stripe_show_bnpl_promotion_banner' ) ) {
+			&& null === $request->get_param( 'wc_stripe_show_bnpl_promotion_banner' )
+			&& null === $request->get_param( 'wc_stripe_show_oc_promotion_banner' ) ) {
 			return new WP_REST_Response( [], 200 );
 		}
 
@@ -627,6 +628,10 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 
 		if ( null !== $request->get_param( 'wc_stripe_show_bnpl_promotion_banner' ) ) {
 			update_option( 'wc_stripe_show_bnpl_promotion_banner', 'no' );
+		}
+
+		if ( null !== $request->get_param( 'wc_stripe_show_oc_promotion_banner' ) ) {
+			update_option( 'wc_stripe_show_oc_promotion_banner', 'no' );
 		}
 
 		return new WP_REST_Response( [ 'result' => 'notice dismissed' ], 200 );

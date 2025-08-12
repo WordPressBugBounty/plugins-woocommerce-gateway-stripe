@@ -1,5 +1,7 @@
 <?php
 
+use Automattic\WooCommerce\Enums\ProductType;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -225,7 +227,7 @@ class WC_Stripe_Express_Checkout_Helper {
 			return false;
 		}
 
-		if ( in_array( $product->get_type(), [ 'variable', 'variable-subscription' ], true ) ) {
+		if ( in_array( $product->get_type(), [ ProductType::VARIABLE, 'variable-subscription' ], true ) ) {
 			$variation_attributes = $product->get_variation_attributes();
 			$attributes           = [];
 
@@ -424,9 +426,9 @@ class WC_Stripe_Express_Checkout_Helper {
 		return apply_filters(
 			'wc_stripe_payment_request_supported_types',
 			[
-				'simple',
-				'variable',
-				'variation',
+				ProductType::SIMPLE,
+				ProductType::VARIABLE,
+				ProductType::VARIATION,
 				'subscription',
 				'variable-subscription',
 				'subscription_variation',
@@ -689,7 +691,7 @@ class WC_Stripe_Express_Checkout_Helper {
 			return false;
 		}
 
-		if ( $is_product && $product && in_array( $product->get_type(), [ 'variable', 'variable-subscription' ], true ) ) {
+		if ( $is_product && $product && in_array( $product->get_type(), [ ProductType::VARIABLE, 'variable-subscription' ], true ) ) {
 			$stock_availability = array_column( $product->get_available_variations(), 'is_in_stock' );
 			// Don't show if all product variations are out-of-stock.
 			if ( ! in_array( true, $stock_availability, true ) ) {
@@ -1667,16 +1669,36 @@ class WC_Stripe_Express_Checkout_Helper {
 	 * Used to remove the booking from WC Bookings in-cart status.
 	 *
 	 * @return int|false
+	 *
+	 * @deprecated 9.8.0 Use `get_booking_ids_from_cart()` instead.
 	 */
 	public function get_booking_id_from_cart() {
-		$cart      = WC()->cart->get_cart();
-		$cart_item = reset( $cart );
-
-		if ( $cart_item && isset( $cart_item['booking']['_booking_id'] ) ) {
-			return $cart_item['booking']['_booking_id'];
+		$booking_ids = $this->get_booking_ids_from_cart();
+		if ( ! empty( $booking_ids ) ) {
+			return $booking_ids[0];
 		}
 
 		return false;
+	}
+
+	/**
+	 * Gets a list of booking ids from the cart.
+	 *
+	 * Used to remove the booking from WC Bookings in-cart status.
+	 *
+	 * @return array
+	 */
+	public function get_booking_ids_from_cart() {
+		$cart        = WC()->cart->get_cart();
+		$booking_ids = [];
+
+		foreach ( $cart as $item ) {
+			if ( ! empty( $item['booking']['_booking_id'] ) ) {
+				$booking_ids[] = $item['booking']['_booking_id'];
+			}
+		}
+
+		return array_unique( $booking_ids );
 	}
 
 	/**
