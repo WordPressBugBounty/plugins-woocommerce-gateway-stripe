@@ -1,5 +1,11 @@
 *** Changelog ***
 
+= 9.8.1 - 2025-08-15 =
+* Fix - Remove connection type requirement from PMC sync migration attempt
+* Fix - Relax customer validation that was preventing payments from the pay for order page
+* Fix - Prevent the PMC migration to run when the plugin is not connected to Stripe
+* Fix - Fixes a fatal error in the OC inbox note when the new checkout is disabled
+
 = 9.8.0 - 2025-08-11 =
 * Add - Adds the current setting value for the Optimized Checkout to the Stripe System Status Report data
 * Add - A new pill to the payment methods page to indicate the credit card requirement when the Optimized Checkout feature is enabled
