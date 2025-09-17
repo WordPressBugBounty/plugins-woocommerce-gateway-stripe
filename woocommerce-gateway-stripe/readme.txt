@@ -4,7 +4,7 @@ Tags: credit card, stripe, payments, woocommerce, woo
 Requires at least: 6.6
 Tested up to: 6.8.2
 Requires PHP: 7.4
-Stable tag: 9.8.1
+Stable tag: 9.9.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Attributions: thorsten-stripe
@@ -109,6 +109,17 @@ If you get stuck, you can ask for help in the [Plugin Forum](https://wordpress.o
 6. Get started with no additional hardware using Tap to Pay on iPhone, or Tap to Pay on Android.
 
 == Changelog ==
+
+= 9.9.1 - 2025-09-16 =
+* Add - Allow Klarna to be used for recurring payments and subscriptions
+* Add - Adds support for the Romanian Leu (RON) currency when paying with Klarna
+* Update - Reduces the minimum transaction amount for Affirm to 35 USD
+* Fix - Fatal error caused by type mismatch when processing webhooks
+* Fix - Avoid instantiating WC_Payment_Gateways too early when checking for Klarna and Affirm plugins
+* Fix - Fix subscription renewal error caused by passing both mandate ID and mandate data
+* Fix - Prevent type collisions for saved payment methods
+* Fix - Validate order when verifying payment intent
+* Dev - Renaming the Klarna payment token class to WC_Stripe_Klarna_Payment_Token
 
 = 9.9.0 - 2025-09-08 =
 
