@@ -126,7 +126,6 @@ class WC_Stripe_Express_Checkout_Ajax_Handler {
 		$data          += $this->express_checkout_helper->build_display_items();
 		$data['result'] = 'success';
 
-		// @phpstan-ignore-next-line (return statement is added)
 		wp_send_json( $data );
 	}
 
@@ -161,6 +160,20 @@ class WC_Stripe_Express_Checkout_Ajax_Handler {
 		// Normalizes billing and shipping state values.
 		$normalized_data = $this->express_checkout_helper->normalize_state( $data );
 		$normalized_data = $this->express_checkout_helper->fix_address_fields_mapping( $normalized_data );
+
+		/**
+		 * Filters the address data for express checkout after the standard normalization logic has been applied.
+		 *
+		 * NOTE: This data is immediately returned to the client, so be careful with the filter implementation,
+		 * as it can cause issues for express checkout flows. Also ensure that data is correctly sanitized and checked
+		 * as it will be visible to shoppers.
+		 *
+		 * @since 10.2.0
+		 *
+		 * @param array $normalized_data The normalized address data.
+		 * @param array $data            The original address data sent from the client before normalization.
+		 */
+		$normalized_data = apply_filters( 'wc_stripe_express_checkout_normalize_address', $normalized_data, $data );
 
 		wp_send_json( $normalized_data );
 	}
@@ -226,7 +239,7 @@ class WC_Stripe_Express_Checkout_Ajax_Handler {
 	public function ajax_get_selected_product_data() {
 		check_ajax_referer( 'wc-stripe-get-selected-product-data', 'security' );
 
-		try { // @phpstan-ignore-line (return statement is added)
+		try {
 			$product_id      = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
 			$qty             = ! isset( $_POST['qty'] ) ? 1 : apply_filters( 'woocommerce_add_to_cart_quantity', absint( $_POST['qty'] ), $product_id );
 			$addon_value     = isset( $_POST['addon_value'] ) ? max( floatval( $_POST['addon_value'] ), 0 ) : 0;
@@ -402,6 +415,7 @@ class WC_Stripe_Express_Checkout_Ajax_Handler {
 	/**
 	 * Modify country locale for express checkout.
 	 * Countries that don't have state fields, make the state field optional.
+	 * Make postcode optional for specific countries during express checkout.
 	 *
 	 * @param array $locale The country locale.
 	 * @return array Modified country locale.
@@ -412,12 +426,34 @@ class WC_Stripe_Express_Checkout_Ajax_Handler {
 			return $locale;
 		}
 
-		include_once WC_STRIPE_PLUGIN_PATH . '/includes/constants/class-wc-stripe-payment-request-button-states.php';
+		include_once WC_STRIPE_PLUGIN_PATH . '/includes/constants/class-wc-stripe-express-checkout-button-states.php';
 
 		// For countries that don't have state fields, make the state field optional.
-		foreach ( WC_Stripe_Payment_Request_Button_States::STATES as $country_code => $states ) {
+		foreach ( WC_Stripe_Express_Checkout_Button_States::STATES as $country_code => $states ) {
 			if ( empty( $states ) ) {
 				$locale[ $country_code ]['state']['required'] = false;
+			}
+		}
+
+		// List of countries where postcode is optional in express checkouts (Google Pay, Apple Pay).
+		// These countries allow addresses without postal codes, but WooCommerce requires them by default.
+		$countries_with_optional_postcode = apply_filters(
+			'wc_stripe_express_checkout_countries_with_optional_postcode',
+			[
+				'AE', // United Arab Emirates
+				'BH', // Bahrain
+				'IL', // Israel
+				'KW', // Kuwait
+				'OM', // Oman
+				'QA', // Qatar
+				'SA', // Saudi Arabia
+			]
+		);
+
+		// Make postcode optional for countries where payment providers don't require it.
+		foreach ( $countries_with_optional_postcode as $country_code ) {
+			if ( isset( $locale[ $country_code ] ) ) {
+				$locale[ $country_code ]['postcode']['required'] = false;
 			}
 		}
 

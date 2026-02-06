@@ -71,7 +71,7 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 						'type'              => 'array',
 						'items'             => [
 							'type' => 'string',
-							'enum' => array_merge( $this->gateway->get_upe_available_payment_methods(), WC_Stripe_Helper::get_legacy_available_payment_method_ids() ),
+							'enum' => $this->gateway->get_upe_available_payment_methods(),
 						],
 						'validate_callback' => 'rest_validate_request_arg',
 					],
@@ -109,20 +109,20 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 					'payment_request_button_type'      => [
 						'description'       => __( 'Express checkout button types.', 'woocommerce-gateway-stripe' ),
 						'type'              => 'string',
-						'enum'              => array_keys( $form_fields['payment_request_button_type']['options'] ),
+						'enum'              => array_keys( $form_fields['express_checkout_button_type']['options'] ),
 						'validate_callback' => 'rest_validate_request_arg',
 					],
 					'payment_request_button_theme'     => [
 						'description'       => __( 'Express checkout button themes.', 'woocommerce-gateway-stripe' ),
 						'type'              => 'string',
-						'enum'              => array_keys( $form_fields['payment_request_button_theme']['options'] ),
+						'enum'              => array_keys( $form_fields['express_checkout_button_theme']['options'] ),
 						'validate_callback' => 'rest_validate_request_arg',
 					],
 					'payment_request_button_size'      => [
 						'description'       => __( 'Express checkout button sizes.', 'woocommerce-gateway-stripe' ),
 						'type'              => 'string',
-						// it can happen that `$form_fields['payment_request_button_size']` is empty (in tests) - fixing temporarily.
-						'enum'              => array_keys( isset( $form_fields['payment_request_button_size']['options'] ) ? $form_fields['payment_request_button_size']['options'] : [] ),
+						// it can happen that `$form_fields['express_checkout_button_size']` is empty (in tests) - fixing temporarily.
+						'enum'              => array_keys( isset( $form_fields['express_checkout_button_size']['options'] ) ? $form_fields['express_checkout_button_size']['options'] : [] ),
 						'validate_callback' => 'rest_validate_request_arg',
 					],
 					'payment_request_button_locations' => [
@@ -130,7 +130,7 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 						'type'              => 'array',
 						'items'             => [
 							'type' => 'string',
-							'enum' => array_keys( $form_fields['payment_request_button_locations']['options'] ),
+							'enum' => array_keys( $form_fields['express_checkout_button_locations']['options'] ),
 						],
 						'validate_callback' => 'rest_validate_request_arg',
 					],
@@ -144,8 +144,13 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 						'type'              => 'boolean',
 						'validate_callback' => 'rest_validate_request_arg',
 					],
-					'is_sepa_tokens_for_other_methods_enabled' => [
-						'description'       => __( 'If "SEPA tokens for other methods" should be enabled.', 'woocommerce-gateway-stripe' ),
+					'is_sepa_tokens_for_ideal' => [
+						'description'       => __( 'If "SEPA tokens for iDEAL" should be enabled.', 'woocommerce-gateway-stripe' ),
+						'type'              => 'boolean',
+						'validate_callback' => 'rest_validate_request_arg',
+					],
+					'is_sepa_tokens_for_bancontact_enabled' => [
+						'description'       => __( 'If "SEPA tokens for Bancontact" should be enabled.', 'woocommerce-gateway-stripe' ),
 						'type'              => 'boolean',
 						'validate_callback' => 'rest_validate_request_arg',
 					],
@@ -180,7 +185,7 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 						'type'              => 'array',
 						'items'             => [
 							'type' => 'string',
-							'enum' => array_merge( $this->gateway->get_upe_available_payment_methods(), WC_Stripe_Helper::get_legacy_available_payment_method_ids() ),
+							'enum' => $this->gateway->get_upe_available_payment_methods(),
 						],
 						'validate_callback' => 'rest_validate_request_arg',
 					],
@@ -204,14 +209,13 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 	 * @return WP_REST_Response
 	 */
 	public function get_settings() {
-		$is_upe_enabled = WC_Stripe_Feature_Flags::is_upe_checkout_enabled();
 		// When UPE and the payment method configurations API are enabled, fetch the enabled payment methods from the payment method configurations API.
 		// We force a refresh of the enabled payment methods (by passing true) when on the settings page to ensure the latest data.
 		// The available payment methods are also fetched from the payment method configurations API under similar conditions,
 		// but we do not force a refresh for available methods, since calling get_upe_enabled_payment_method_ids first already ensures the list is up to date.
-		$enabled_payment_method_ids   = $is_upe_enabled ? $this->gateway->get_upe_enabled_payment_method_ids( true ) : WC_Stripe_Helper::get_legacy_enabled_payment_method_ids();
-		$available_payment_method_ids = $is_upe_enabled ? $this->gateway->get_upe_available_payment_methods() : WC_Stripe_Helper::get_legacy_available_payment_method_ids();
-		$ordered_payment_method_ids   = $is_upe_enabled ? WC_Stripe_Helper::get_upe_ordered_payment_method_ids( $this->gateway ) : $available_payment_method_ids;
+		$enabled_payment_method_ids   = $this->gateway->get_upe_enabled_payment_method_ids( true );
+		$available_payment_method_ids = $this->gateway->get_upe_available_payment_methods();
+		$ordered_payment_method_ids   = WC_Stripe_Helper::get_upe_ordered_payment_method_ids( $this->gateway );
 
 		return new WP_REST_Response(
 			[
@@ -232,21 +236,22 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 				'amazon_pay_button_size'                   => $this->gateway->get_validated_option( 'amazon_pay_button_size' ),
 				'amazon_pay_button_locations'              => $this->gateway->get_validated_option( 'amazon_pay_button_locations' ),
 				'is_payment_request_enabled'               => $this->gateway->is_payment_request_enabled(),
-				'payment_request_button_type'              => $this->gateway->get_validated_option( 'payment_request_button_type' ),
-				'payment_request_button_theme'             => $this->gateway->get_validated_option( 'payment_request_button_theme' ),
-				'payment_request_button_size'              => $this->gateway->get_validated_option( 'payment_request_button_size' ),
-				'payment_request_button_locations'         => $this->gateway->get_validated_option( 'payment_request_button_locations' ),
+				'payment_request_button_type'              => $this->gateway->get_validated_option( 'express_checkout_button_type' ),
+				'payment_request_button_theme'             => $this->gateway->get_validated_option( 'express_checkout_button_theme' ),
+				'payment_request_button_size'              => $this->gateway->get_validated_option( 'express_checkout_button_size' ),
+				'payment_request_button_locations'         => $this->gateway->get_validated_option( 'express_checkout_button_locations' ),
 
 				/* Settings > Payments & transactions */
 				'is_manual_capture_enabled'                => ! $this->gateway->is_automatic_capture_enabled(),
 				'is_saved_cards_enabled'                   => 'yes' === $this->gateway->get_option( 'saved_cards' ),
-				'is_sepa_tokens_for_other_methods_enabled' => 'yes' === $this->gateway->get_option( 'sepa_tokens_for_other_methods' ),
+				'is_sepa_tokens_for_ideal_enabled'         => 'yes' === $this->gateway->get_option( 'sepa_tokens_for_ideal' ),
+				'is_sepa_tokens_for_bancontact_enabled'    => 'yes' === $this->gateway->get_option( 'sepa_tokens_for_bancontact' ),
 				'is_separate_card_form_enabled'            => 'no' === $this->gateway->get_option( 'inline_cc_form' ),
 				'is_short_statement_descriptor_enabled'    => 'yes' === $this->gateway->get_option( 'is_short_statement_descriptor_enabled' ),
 
 				/* Settings > Advanced settings */
 				'is_debug_log_enabled'                     => 'yes' === $this->gateway->get_option( 'logging' ),
-				'is_upe_enabled'                           => $is_upe_enabled,
+				'is_upe_enabled'                           => true,
 				'is_oc_enabled'                            => 'yes' === $this->gateway->get_option( 'optimized_checkout_element' ),
 				'oc_layout'                                => $this->gateway->get_validated_option( 'optimized_checkout_layout' ),
 				'is_pmc_enabled'                           => 'yes' === $this->gateway->get_option( 'pmc_enabled' ),
@@ -268,7 +273,7 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 		$payment_method_ids_to_enable = $this->get_payment_method_ids_to_enable( $request );
 		$is_upe_enabled               = $request->get_param( 'is_upe_enabled' );
 		$this->update_enabled_payment_methods( $payment_method_ids_to_enable, $is_upe_enabled );
-		if ( ! WC_Stripe_Feature_Flags::is_upe_checkout_enabled() || ! WC_Stripe_Payment_Method_Configurations::is_enabled() ) {
+		if ( ! WC_Stripe_Payment_Method_Configurations::is_enabled() ) {
 			// We need to update a separate setting for legacy checkout.
 			$this->update_is_payment_request_enabled_for_legacy_checkout( $request );
 		}
@@ -278,7 +283,8 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 		/* Settings > Payments & transactions */
 		$this->update_is_manual_capture_enabled( $request );
 		$this->update_is_saved_cards_enabled( $request );
-		$this->update_is_sepa_tokens_for_other_methods_enabled( $request );
+		$this->update_is_sepa_tokens_for_ideal_enabled( $request );
+		$this->update_is_sepa_tokens_for_bancontact_enabled( $request );
 		$this->update_is_separate_card_form_enabled( $request );
 		$this->update_is_short_account_statement_enabled( $request );
 
@@ -312,6 +318,16 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 			);
 		}
 
+		// Amazon Pay cannot be enabled when taxes are based on the customer billing address.
+		if ( ! empty( $payment_method_ids_to_enable ) && in_array( WC_Stripe_Payment_Methods::AMAZON_PAY, $payment_method_ids_to_enable, true ) &&
+			'billing' === get_option( 'woocommerce_tax_based_on' )
+		) {
+			$payment_method_ids_to_enable = array_diff(
+				$payment_method_ids_to_enable,
+				[ WC_Stripe_Payment_Methods::AMAZON_PAY ]
+			);
+		}
+
 		return $payment_method_ids_to_enable;
 	}
 
@@ -323,28 +339,13 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 	 * @return WP_REST_Response
 	 */
 	public function update_payment_methods_order( WP_REST_Request $request ) {
-		$is_upe_enabled             = WC_Stripe_Feature_Flags::is_upe_checkout_enabled();
 		$ordered_payment_method_ids = $request->get_param( 'ordered_payment_method_ids' );
 
 		if ( empty( $ordered_payment_method_ids ) ) {
 			return new WP_REST_Response( [], 403 );
 		}
 
-		if ( $is_upe_enabled ) {
-			$this->gateway->update_option( 'stripe_upe_payment_method_order', $ordered_payment_method_ids );
-		} else {
-			$ordered_payment_method_ids = array_map(
-				function ( $id ) {
-					if ( WC_Stripe_Payment_Methods::CARD === $id ) {
-						return 'stripe';
-					}
-					return 'stripe_' . $id;
-				},
-				$ordered_payment_method_ids
-			);
-
-			$this->gateway->update_option( 'stripe_legacy_method_order', $ordered_payment_method_ids );
-		}
+		$this->gateway->update_option( 'stripe_upe_payment_method_order', $ordered_payment_method_ids );
 
 		WC_Stripe_Helper::add_stripe_methods_in_woocommerce_gateway_order( $ordered_payment_method_ids );
 
@@ -431,18 +432,33 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 	}
 
 	/**
-	 * Updates "SEPA tokens for other methods" feature.
+	 * Updates "SEPA tokens for other iDEAL" feature.
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 */
-	private function update_is_sepa_tokens_for_other_methods_enabled( WP_REST_Request $request ) {
-		$is_sepa_tokens_for_other_methods_enabled = $request->get_param( 'is_sepa_tokens_for_other_methods_enabled' );
+	private function update_is_sepa_tokens_for_ideal_enabled( WP_REST_Request $request ) {
+		$is_sepa_tokens_for_ideal_enabled = $request->get_param( 'is_sepa_tokens_for_ideal_enabled' );
 
-		if ( null === $is_sepa_tokens_for_other_methods_enabled ) {
+		if ( null === $is_sepa_tokens_for_ideal_enabled ) {
 			return;
 		}
 
-		$this->gateway->update_option( 'sepa_tokens_for_other_methods', $is_sepa_tokens_for_other_methods_enabled ? 'yes' : 'no' );
+		$this->gateway->update_option( 'sepa_tokens_for_ideal', $is_sepa_tokens_for_ideal_enabled ? 'yes' : 'no' );
+	}
+
+	/**
+	 * Updates "SEPA tokens for Bancontact" feature.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 */
+	private function update_is_sepa_tokens_for_bancontact_enabled( WP_REST_Request $request ) {
+		$is_sepa_tokens_for_bancontact_enabled = $request->get_param( 'is_sepa_tokens_for_bancontact_enabled' );
+
+		if ( null === $is_sepa_tokens_for_bancontact_enabled ) {
+			return;
+		}
+
+		$this->gateway->update_option( 'sepa_tokens_for_bancontact', $is_sepa_tokens_for_bancontact_enabled ? 'yes' : 'no' );
 	}
 
 	/**
@@ -518,10 +534,10 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 	 */
 	private function update_payment_request_settings( WP_REST_Request $request ) {
 		$attributes = [
-			'payment_request_button_type'      => 'payment_request_button_type',
-			'payment_request_button_size'      => 'payment_request_button_size',
-			'payment_request_button_theme'     => 'payment_request_button_theme',
-			'payment_request_button_locations' => 'payment_request_button_locations',
+			'payment_request_button_type'      => 'express_checkout_button_type',
+			'payment_request_button_size'      => 'express_checkout_button_size',
+			'payment_request_button_theme'     => 'express_checkout_button_theme',
+			'payment_request_button_locations' => 'express_checkout_button_locations',
 		];
 
 		foreach ( $attributes as $request_key => $attribute ) {
@@ -583,25 +599,7 @@ class WC_REST_Stripe_Settings_Controller extends WC_Stripe_REST_Base_Controller 
 			return;
 		}
 
-		if ( ! $is_upe_enabled ) {
-			$currently_enabled_payment_method_ids = WC_Stripe_Helper::get_legacy_enabled_payment_method_ids();
-			$payment_gateways                     = WC_Stripe_Helper::get_legacy_payment_methods();
-
-			foreach ( $payment_gateways as $gateway ) {
-				$gateway_id = str_replace( 'stripe_', '', $gateway->id );
-				if ( ! in_array( $gateway_id, $payment_method_ids_to_enable, true ) && in_array( $gateway_id, $currently_enabled_payment_method_ids, true ) ) {
-					$gateway->update_option( 'enabled', 'no' );
-				} elseif ( in_array( $gateway_id, $payment_method_ids_to_enable, true ) ) {
-					$gateway->update_option( 'enabled', 'yes' );
-				}
-			}
-
-			return;
-		}
-
-		if ( $this->gateway instanceof WC_Stripe_UPE_Payment_Gateway ) {
-			$this->gateway->update_enabled_payment_methods( $payment_method_ids_to_enable );
-		}
+		$this->gateway->update_enabled_payment_methods( $payment_method_ids_to_enable );
 	}
 
 	/**

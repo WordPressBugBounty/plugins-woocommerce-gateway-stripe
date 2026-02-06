@@ -16,13 +16,17 @@ class WC_Stripe_UPE_Payment_Method_Link extends WC_Stripe_UPE_Payment_Method {
 	public function __construct() {
 		parent::__construct();
 		$this->stripe_id   = self::STRIPE_ID;
-		$this->title       = __( 'Link', 'woocommerce-gateway-stripe' );
+		// Note that the title and label are not translated, as "Link" should not be translated.
+		$this->title       = 'Link';
 		$this->is_reusable = true;
-		$this->label       = __( 'Stripe Link', 'woocommerce-gateway-stripe' );
-		$this->description = __(
-			'Link is a payment method that allows customers to save payment information  and use the payment details
-			for further payments.',
-			'woocommerce-gateway-stripe'
+		$this->label       = 'Stripe Link';
+		$this->description = sprintf(
+			/* translators: %s: "Link" - a product name that should not be translated. */
+			__(
+				'%s is a payment method that allows customers to save payment information and use the payment details for further payments.',
+				'woocommerce-gateway-stripe'
+			),
+			'Link'
 		);
 
 		add_filter( 'woocommerce_gateway_title', [ $this, 'filter_gateway_title' ], 10, 2 );
@@ -35,11 +39,6 @@ class WC_Stripe_UPE_Payment_Method_Link extends WC_Stripe_UPE_Payment_Method {
 	 * @return bool
 	 */
 	public static function is_link_enabled( WC_Gateway_Stripe $gateway ) {
-		// Assume Link is disabled if UPE is disabled.
-		if ( ! WC_Stripe_Feature_Flags::is_upe_checkout_enabled() ) {
-			return false;
-		}
-
 		$upe_enabled_method_ids = $gateway->get_upe_enabled_payment_method_ids();
 
 		return is_array( $upe_enabled_method_ids ) && in_array( self::STRIPE_ID, $upe_enabled_method_ids, true );

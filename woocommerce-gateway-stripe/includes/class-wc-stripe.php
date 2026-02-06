@@ -125,8 +125,10 @@ class WC_Stripe {
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/class-wc-stripe-exception.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/class-wc-stripe-logger.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/class-wc-stripe-helper.php';
+		include_once WC_STRIPE_PLUGIN_PATH . '/includes/class-wc-stripe-order-helper.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/class-wc-stripe-database-cache.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/class-wc-stripe-payment-method-configurations.php';
+		require_once WC_STRIPE_PLUGIN_PATH . '/includes/class-wc-stripe-database-cache-prefetch.php';
 		include_once WC_STRIPE_PLUGIN_PATH . '/includes/class-wc-stripe-api.php';
 		include_once WC_STRIPE_PLUGIN_PATH . '/includes/class-wc-stripe-mode.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/compat/class-wc-stripe-subscriptions-helper.php';
@@ -184,17 +186,6 @@ class WC_Stripe {
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-stripe-upe-payment-method-acss.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-stripe-upe-payment-method-amazon-pay.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-stripe-upe-payment-method-oc.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-bancontact.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-sofort.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-giropay.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-eps.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-ideal.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-p24.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-alipay.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-sepa.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-multibanco.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-boleto.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-gateway-stripe-oxxo.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-stripe-payment-request.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-stripe-express-checkout-element.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/payment-methods/class-wc-stripe-express-checkout-helper.php';
@@ -210,12 +201,13 @@ class WC_Stripe {
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-inbox-notes.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-upe-compatibility-controller.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/migrations/class-allowed-payment-request-button-types-update.php';
+		require_once WC_STRIPE_PLUGIN_PATH . '/includes/migrations/class-sepa-tokens-for-other-methods-settings-update.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/migrations/class-migrate-payment-request-data-to-express-checkout-data.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/class-wc-stripe-account.php';
 
 		new Allowed_Payment_Request_Button_Types_Update();
-		// TODO: Temporary disabling the migration as it has a conflict with the new UPE checkout.
-		// new Migrate_Payment_Request_Data_To_Express_Checkout_Data();
+		new Migrate_Payment_Request_Data_To_Express_Checkout_Data();
+		new Sepa_Tokens_For_Other_Methods_Settings_Update();
 
 		$this->api                           = new WC_Stripe_Connect_API();
 		$this->connect                       = new WC_Stripe_Connect( $this->api );
@@ -232,9 +224,9 @@ class WC_Stripe {
 			require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-admin-notices.php';
 			require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-settings-controller.php';
 
-			if ( isset( $_GET['area'] ) && 'payment_requests' === $_GET['area'] ) {
-				require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-payment-requests-controller.php';
-				new WC_Stripe_Payment_Requests_Controller();
+			if ( isset( $_GET['area'] ) && in_array( $_GET['area'], [ 'express_checkout', 'payment_requests' ], true ) ) {
+				require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-express-checkout-controller.php';
+				new WC_Stripe_Express_Checkout_Controller();
 			} elseif ( isset( $_GET['area'] ) && 'amazon_pay' === $_GET['area'] && WC_Stripe_Feature_Flags::is_amazon_pay_available() ) {
 				require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-amazon-pay-controller.php';
 				new WC_Stripe_Amazon_Pay_Controller();
@@ -242,10 +234,8 @@ class WC_Stripe {
 				new WC_Stripe_Settings_Controller( $this->account );
 			}
 
-			if ( WC_Stripe_Feature_Flags::is_upe_checkout_enabled() ) {
-				require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-payment-gateways-controller.php';
-				new WC_Stripe_Payment_Gateways_Controller();
-			}
+			require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-payment-gateways-controller.php';
+			new WC_Stripe_Payment_Gateways_Controller();
 
 			if ( WC_Stripe_Subscriptions_Helper::is_subscriptions_enabled() ) {
 				require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-subscription-detached-bulk-action.php';
@@ -291,6 +281,9 @@ class WC_Stripe {
 
 		add_action( WC_Stripe_Database_Cache::ASYNC_CLEANUP_ACTION, [ WC_Stripe_Database_Cache::class, 'delete_all_stale_entries_async' ], 10, 2 );
 		add_action( 'action_scheduler_run_recurring_actions_schedule_hook', [ WC_Stripe_Database_Cache::class, 'maybe_schedule_daily_async_cleanup' ], 10, 0 );
+
+		// Handle the async cache prefetch action.
+		add_action( WC_Stripe_Database_Cache_Prefetch::ASYNC_PREFETCH_ACTION, [ WC_Stripe_Database_Cache_Prefetch::get_instance(), 'handle_prefetch_action' ], 10, 1 );
 	}
 
 	/**
@@ -338,6 +331,11 @@ class WC_Stripe {
 
 			if ( ! defined( 'WC_STRIPE_INSTALLING' ) ) {
 				define( 'WC_STRIPE_INSTALLING', true );
+			}
+
+			// Mark optimized checkout as default on for new installs.
+			if ( false === get_option( 'wc_stripe_version' ) && false === get_option( 'wc_stripe_optimized_checkout_default_on' ) ) {
+				update_option( 'wc_stripe_optimized_checkout_default_on', true );
 			}
 
 			add_woocommerce_inbox_variant();
@@ -408,10 +406,19 @@ class WC_Stripe {
 	 */
 	public function update_prb_location_settings() {
 		$stripe_settings = WC_Stripe_Helper::get_stripe_settings();
-		$prb_locations   = isset( $stripe_settings['payment_request_button_locations'] )
-			? $stripe_settings['payment_request_button_locations']
+		$prb_locations   = isset( $stripe_settings['express_checkout_button_locations'] )
+			? $stripe_settings['express_checkout_button_locations']
 			: [];
 		if ( ! empty( $stripe_settings ) && empty( $prb_locations ) ) {
+			// Use existing payment_request_button_locations if it exists.
+			if ( array_key_exists( 'payment_request_button_locations', $stripe_settings ) ) {
+				$stripe_settings['express_checkout_button_locations'] = $stripe_settings['payment_request_button_locations'];
+				unset( $stripe_settings['payment_request_button_locations'] );
+				WC_Stripe_Helper::update_main_stripe_settings( $stripe_settings );
+				return;
+			}
+
+			// Fall back to filter defaults only if no existing setting.
 			global $post;
 
 			$should_show_on_product_page  = ! apply_filters( 'wc_stripe_hide_payment_request_on_product_page', false, $post );
@@ -432,7 +439,7 @@ class WC_Stripe {
 				$new_prb_locations[] = 'checkout';
 			}
 
-			$stripe_settings['payment_request_button_locations'] = $new_prb_locations;
+			$stripe_settings['express_checkout_button_locations'] = $new_prb_locations;
 			WC_Stripe_Helper::update_main_stripe_settings( $stripe_settings );
 		}
 	}
@@ -479,46 +486,23 @@ class WC_Stripe {
 		$main_gateway = $this->get_main_stripe_gateway();
 		$methods[]    = $main_gateway;
 
-		// These payment gateways will be visible in the main settings page, if UPE enabled.
-		if ( is_a( $main_gateway, 'WC_Stripe_UPE_Payment_Gateway' ) ) {
-			// The $main_gateway represents the card gateway so we don't want to include it in the list of UPE gateways.
-			$upe_payment_methods = $main_gateway->payment_methods;
-			unset( $upe_payment_methods['card'] );
+		// The $main_gateway represents the card gateway so we don't want to include it in the list of UPE gateways.
+		$upe_payment_methods = $main_gateway->payment_methods;
+		unset( $upe_payment_methods['card'] );
 
-			$methods = array_merge( $methods, $upe_payment_methods );
-		} else {
-			// APMs are deprecated as of Oct, 29th 2024 for the legacy checkout.
-			if ( WC_Stripe_Feature_Flags::are_apms_deprecated() ) {
-				return $methods;
-			}
+		$methods = array_merge( $methods, $upe_payment_methods );
 
-			// These payment gateways will not be included in the gateway list when UPE is enabled:
-			$methods[] = WC_Gateway_Stripe_Alipay::class;
-			$methods[] = WC_Gateway_Stripe_Sepa::class;
-			$methods[] = WC_Gateway_Stripe_Giropay::class;
-			$methods[] = WC_Gateway_Stripe_Ideal::class;
-			$methods[] = WC_Gateway_Stripe_Bancontact::class;
-			$methods[] = WC_Gateway_Stripe_Eps::class;
-			$methods[] = WC_Gateway_Stripe_P24::class;
-			$methods[] = WC_Gateway_Stripe_Boleto::class;
-			$methods[] = WC_Gateway_Stripe_Oxxo::class;
-			$methods[] = WC_Gateway_Stripe_Multibanco::class;
-
-			/** Show Sofort if it's already enabled. Hide from the new merchants and keep it for the old ones who are already using this gateway, until we remove it completely.
-			 * Stripe is deprecating Sofort https://support.stripe.com/questions/sofort-is-being-deprecated-as-a-standalone-payment-method.
-			 */
-			$sofort_settings = get_option( 'woocommerce_stripe_sofort_settings', [] );
-			if ( isset( $sofort_settings['enabled'] ) && 'yes' === $sofort_settings['enabled'] ) {
-				$methods[] = WC_Gateway_Stripe_Sofort::class;
-			}
-		}
-
-		// Don't include Link as an enabled method if we're in the admin so it doesn't show up in the checkout editor page.
+		// When we are in an admin context, filter out Link and Amazon Pay, as they are only available as
+		// express checkout methods, and including them in the list results in warnings about block support
+		// when viewing the Express Checkout block in the editor for the cart and checkout pages.
 		if ( is_admin() ) {
 			$methods = array_filter(
 				$methods,
 				function ( $method ) {
-					return ! is_a( $method, WC_Stripe_UPE_Payment_Method_Link::class );
+					if ( $method instanceof WC_Stripe_UPE_Payment_Method_Link || $method instanceof WC_Stripe_UPE_Payment_Method_Amazon_Pay ) {
+						return false;
+					}
+					return true;
 				}
 			);
 		}
@@ -534,9 +518,6 @@ class WC_Stripe {
 	 */
 	public function filter_gateway_order_admin( $sections ) {
 		unset( $sections['stripe'] );
-		if ( WC_Stripe_Feature_Flags::is_upe_preview_enabled() ) {
-			unset( $sections['stripe_upe'] );
-		}
 		unset( $sections['stripe_bancontact'] );
 		unset( $sections['stripe_sofort'] );
 		unset( $sections['stripe_giropay'] );
@@ -547,10 +528,9 @@ class WC_Stripe {
 		unset( $sections['stripe_sepa'] );
 		unset( $sections['stripe_multibanco'] );
 
-		$sections['stripe'] = 'Stripe';
-		if ( WC_Stripe_Feature_Flags::is_upe_preview_enabled() ) {
-			$sections['stripe_upe'] = 'Stripe checkout experience';
-		}
+		$sections['stripe']     = 'Stripe';
+		$sections['stripe_upe'] = 'Stripe checkout experience';
+
 		$sections['stripe_bancontact'] = __( 'Stripe Bancontact', 'woocommerce-gateway-stripe' );
 		$sections['stripe_sofort']     = __( 'Stripe Sofort', 'woocommerce-gateway-stripe' );
 		$sections['stripe_giropay']    = __( 'Stripe giropay', 'woocommerce-gateway-stripe' );
@@ -576,7 +556,7 @@ class WC_Stripe {
 	 */
 	public function gateway_settings_update( $settings, $old_settings ) {
 		if ( false === $old_settings ) {
-			$gateway      = new WC_Gateway_Stripe();
+			$gateway      = new WC_Stripe_UPE_Payment_Gateway();
 			$fields       = $gateway->get_form_fields();
 			$old_settings = array_merge( array_fill_keys( array_keys( $fields ), '' ), wp_list_pluck( $fields, 'default' ) );
 			$settings     = array_merge( $old_settings, $settings );
@@ -584,10 +564,6 @@ class WC_Stripe {
 
 		// Note that we need to run these checks before we call toggle_upe() below.
 		$this->maybe_reset_stripe_in_memory_key( $settings, $old_settings );
-
-		if ( ! WC_Stripe_Feature_Flags::is_upe_preview_enabled() ) {
-			return $settings;
-		}
 
 		return $this->toggle_upe( $settings, $old_settings );
 	}
@@ -653,38 +629,6 @@ class WC_Stripe {
 	protected function enable_upe( $settings ) {
 		$settings['upe_checkout_experience_accepted_payments'] = [];
 
-		$payment_gateways = WC_Stripe_Helper::get_legacy_payment_methods();
-		foreach ( WC_Stripe_UPE_Payment_Gateway::UPE_AVAILABLE_METHODS as $method_class ) {
-			if ( ! defined( "$method_class::LPM_GATEWAY_CLASS" ) ) {
-				continue;
-			}
-
-			$lpm_gateway_id = constant( $method_class::LPM_GATEWAY_CLASS . '::ID' );
-			if ( isset( $payment_gateways[ $lpm_gateway_id ] ) && $payment_gateways[ $lpm_gateway_id ]->is_enabled() ) {
-				// DISABLE LPM
-				/**
-				 * TODO: This can be replaced with:
-				 *
-				 *   $payment_gateways[ $lpm_gateway_id ]->update_option( 'enabled', 'no' );
-				 *   $payment_gateways[ $lpm_gateway_id ]->enabled = 'no';
-				 *
-				 * ...once the minimum WC version is 3.4.0.
-				 */
-				$payment_gateways[ $lpm_gateway_id ]->settings['enabled'] = 'no';
-				update_option(
-					$payment_gateways[ $lpm_gateway_id ]->get_option_key(),
-					apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $payment_gateways[ $lpm_gateway_id ]::ID, $payment_gateways[ $lpm_gateway_id ]->settings ),
-					'yes'
-				);
-				// ENABLE UPE METHOD
-				$settings['upe_checkout_experience_accepted_payments'][] = $method_class::STRIPE_ID;
-			}
-
-			if ( 'stripe' === $lpm_gateway_id && isset( $this->stripe_gateway ) && $this->stripe_gateway->is_enabled() ) {
-				$settings['upe_checkout_experience_accepted_payments'][] = 'card';
-				$settings['upe_checkout_experience_accepted_payments'][] = 'link';
-			}
-		}
 		if ( empty( $settings['upe_checkout_experience_accepted_payments'] ) ) {
 			$settings['upe_checkout_experience_accepted_payments'] = [ 'card', 'link' ];
 		} else {
@@ -698,23 +642,6 @@ class WC_Stripe {
 	protected function disable_upe( $settings ) {
 		$upe_gateway            = new WC_Stripe_UPE_Payment_Gateway();
 		$upe_enabled_method_ids = $upe_gateway->get_upe_enabled_payment_method_ids();
-		foreach ( WC_Stripe_UPE_Payment_Gateway::UPE_AVAILABLE_METHODS as $method_class ) {
-			if ( ! defined( "$method_class::LPM_GATEWAY_CLASS" ) || ! in_array( $method_class::STRIPE_ID, $upe_enabled_method_ids, true ) ) {
-				continue;
-			}
-			// ENABLE LPM
-			$gateway_class = $method_class::LPM_GATEWAY_CLASS;
-			$gateway       = new $gateway_class();
-			/**
-			 * TODO: This can be replaced with:
-			 *
-			 *   $gateway->update_option( 'enabled', 'yes' );
-			 *
-			 * ...once the minimum WC version is 3.4.0.
-			 */
-			$gateway->settings['enabled'] = 'yes';
-			update_option( $gateway->get_option_key(), apply_filters( 'woocommerce_settings_api_sanitized_fields_' . $gateway::ID, $gateway->settings ), 'yes' );
-		}
 		// Disable main Stripe/card LPM if 'card' UPE method wasn't enabled.
 		if ( ! in_array( 'card', $upe_enabled_method_ids, true ) ) {
 			$settings['enabled'] = 'no';
@@ -765,43 +692,35 @@ class WC_Stripe {
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-rest-stripe-locations-controller.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-rest-stripe-orders-controller.php';
 		require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-rest-stripe-tokens-controller.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/connect/class-wc-stripe-connect-rest-oauth-init-controller.php';
-		require_once WC_STRIPE_PLUGIN_PATH . '/includes/connect/class-wc-stripe-connect-rest-oauth-connect-controller.php';
 
 		$connection_tokens_controller = new WC_REST_Stripe_Connection_Tokens_Controller( $this->get_main_stripe_gateway() );
 		$locations_controller         = new WC_REST_Stripe_Locations_Controller();
 		$orders_controller            = new WC_REST_Stripe_Orders_Controller( $this->get_main_stripe_gateway() );
 		$stripe_tokens_controller     = new WC_REST_Stripe_Tokens_Controller();
-		$oauth_init                   = new WC_Stripe_Connect_REST_Oauth_Init_Controller( $this->connect, $this->api );
-		$oauth_connect                = new WC_Stripe_Connect_REST_Oauth_Connect_Controller( $this->connect, $this->api );
 		$stripe_account_controller    = new WC_REST_Stripe_Account_Controller( $this->get_main_stripe_gateway(), $this->account );
 
 		$connection_tokens_controller->register_routes();
 		$locations_controller->register_routes();
 		$orders_controller->register_routes();
 		$stripe_tokens_controller->register_routes();
-		$oauth_init->register_routes();
-		$oauth_connect->register_routes();
 		$stripe_account_controller->register_routes();
 
-		if ( WC_Stripe_Feature_Flags::is_upe_preview_enabled() ) {
-			require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-rest-stripe-settings-controller.php';
-			require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-rest-upe-flag-toggle-controller.php';
-			require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-rest-stripe-account-keys-controller.php';
-			require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-rest-oc-setting-toggle-controller.php';
+		require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-rest-stripe-settings-controller.php';
+		require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-rest-upe-flag-toggle-controller.php';
+		require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-rest-stripe-account-keys-controller.php';
+		require_once WC_STRIPE_PLUGIN_PATH . '/includes/admin/class-wc-stripe-rest-oc-setting-toggle-controller.php';
 
-			$upe_flag_toggle_controller = new WC_Stripe_REST_UPE_Flag_Toggle_Controller();
-			$upe_flag_toggle_controller->register_routes();
+		$upe_flag_toggle_controller = new WC_Stripe_REST_UPE_Flag_Toggle_Controller();
+		$upe_flag_toggle_controller->register_routes();
 
-			$settings_controller = new WC_REST_Stripe_Settings_Controller( $this->get_main_stripe_gateway() );
-			$settings_controller->register_routes();
+		$settings_controller = new WC_REST_Stripe_Settings_Controller( $this->get_main_stripe_gateway() );
+		$settings_controller->register_routes();
 
-			$stripe_account_keys_controller = new WC_REST_Stripe_Account_Keys_Controller( $this->account );
-			$stripe_account_keys_controller->register_routes();
+		$stripe_account_keys_controller = new WC_REST_Stripe_Account_Keys_Controller( $this->account );
+		$stripe_account_keys_controller->register_routes();
 
-			$oc_setting_toggle_controller = new WC_Stripe_REST_OC_Setting_Toggle_Controller( $this->get_main_stripe_gateway() );
-			$oc_setting_toggle_controller->register_routes();
-		}
+		$oc_setting_toggle_controller = new WC_Stripe_REST_OC_Setting_Toggle_Controller( $this->get_main_stripe_gateway() );
+		$oc_setting_toggle_controller->register_routes();
 	}
 
 	/**
@@ -810,17 +729,9 @@ class WC_Stripe {
 	 * @return WC_Stripe_Payment_Gateway
 	 */
 	public function get_main_stripe_gateway() {
-		if ( ! is_null( $this->stripe_gateway ) ) {
-			return $this->stripe_gateway;
-		}
-
-		if ( WC_Stripe_Feature_Flags::is_upe_preview_enabled() && WC_Stripe_Feature_Flags::is_upe_checkout_enabled() ) {
+		if ( ! $this->stripe_gateway ) {
 			$this->stripe_gateway = new WC_Stripe_UPE_Payment_Gateway();
-
-			return $this->stripe_gateway;
 		}
-
-		$this->stripe_gateway = new WC_Gateway_Stripe();
 
 		return $this->stripe_gateway;
 	}

@@ -6,6 +6,8 @@
  *
  * @package WooCommerce_Stripe/Classes/Payment_Request
  * @since   4.0.0
+ *
+ * @deprecated 10.2.0 This class is now deprecated in favor of ECE and will be removed in future versions.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -14,6 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * WC_Stripe_Payment_Request class.
+ *
+ * @deprecated 10.2.0 This class is now deprecated in favor of ECE and will be removed in future versions.
  */
 class WC_Stripe_Payment_Request {
 
@@ -68,6 +72,7 @@ class WC_Stripe_Payment_Request {
 	 * @version 4.0.0
 	 */
 	public function __construct() {
+
 		self::$_this           = $this;
 		$this->stripe_settings = WC_Stripe_Helper::get_stripe_settings();
 		$this->testmode        = WC_Stripe_Mode::is_test();
@@ -84,10 +89,8 @@ class WC_Stripe_Payment_Request {
 
 		add_action( 'woocommerce_stripe_updated', [ $this, 'migrate_button_size' ] );
 
-		// Check if ECE feature flag is enabled.
-		if ( WC_Stripe_Feature_Flags::is_upe_checkout_enabled() && WC_Stripe_Feature_Flags::is_stripe_ece_enabled() ) {
-			return;
-		}
+		// Don't initiate this class as it is deprecated.
+		return;
 
 		// Checks if Stripe Gateway is enabled.
 		if ( empty( $this->stripe_settings ) || ( isset( $this->stripe_settings['enabled'] ) && 'yes' !== $this->stripe_settings['enabled'] ) ) {
@@ -283,10 +286,6 @@ class WC_Stripe_Payment_Request {
 	 * @return  string
 	 */
 	public function get_button_height() {
-		if ( ! WC_Stripe_Feature_Flags::is_upe_preview_enabled() ) {
-			return isset( $this->stripe_settings['payment_request_button_height'] ) ? str_replace( 'px', '', $this->stripe_settings['payment_request_button_height'] ) : '64';
-		}
-
 		$height = isset( $this->stripe_settings['payment_request_button_size'] ) ? $this->stripe_settings['payment_request_button_size'] : 'default';
 		if ( 'small' === $height ) {
 			return '40';
@@ -330,12 +329,7 @@ class WC_Stripe_Payment_Request {
 	 * @return  boolean
 	 */
 	public function is_custom_button() {
-		// no longer a valid option
-		if ( WC_Stripe_Feature_Flags::is_upe_preview_enabled() ) {
-			return false;
-		}
-
-		return 'custom' === $this->get_button_type();
+		return false;
 	}
 
 	/**
@@ -357,12 +351,7 @@ class WC_Stripe_Payment_Request {
 	 * @return  string
 	 */
 	public function get_button_label() {
-		// no longer a valid option
-		if ( WC_Stripe_Feature_Flags::is_upe_preview_enabled() ) {
-			return '';
-		}
-
-		return isset( $this->stripe_settings['payment_request_button_label'] ) ? $this->stripe_settings['payment_request_button_label'] : 'Buy now';
+		return '';
 	}
 
 	/**
@@ -1360,7 +1349,7 @@ class WC_Stripe_Payment_Request {
 	public function ajax_get_selected_product_data() {
 		check_ajax_referer( 'wc-stripe-get-selected-product-data', 'security' );
 
-		try { // @phpstan-ignore-line (return statement is added)
+		try {
 			$product_id   = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
 			$qty          = ! isset( $_POST['qty'] ) ? 1 : apply_filters( 'woocommerce_add_to_cart_quantity', absint( $_POST['qty'] ), $product_id );
 			$addon_value  = isset( $_POST['addon_value'] ) ? max( floatval( $_POST['addon_value'] ), 0 ) : 0;
@@ -1496,7 +1485,6 @@ class WC_Stripe_Payment_Request {
 			$data          += $this->build_display_items();
 			$data['result'] = 'success';
 
-			// @phpstan-ignore-next-line (return statement is added)
 			wp_send_json( $data );
 		} catch ( Exception $e ) {
 			wp_send_json( [ 'error' => wp_strip_all_tags( $e->getMessage() ) ] );
@@ -1824,32 +1812,18 @@ class WC_Stripe_Payment_Request {
 		// it would be DRYer to use `array_merge`,
 		// but I thought that this approach might be more straightforward to clean up when we remove the feature flag code.
 		$button_type = $this->get_button_type();
-		if ( WC_Stripe_Feature_Flags::is_upe_preview_enabled() ) {
-			return [
-				'type'         => $button_type,
-				'theme'        => $this->get_button_theme(),
-				'height'       => $this->get_button_height(),
-				// Default format is en_US.
-				'locale'       => apply_filters( 'wc_stripe_payment_request_button_locale', substr( get_locale(), 0, 2 ) ),
-				'branded_type' => 'default' === $button_type ? 'short' : 'long',
-				// these values are no longer applicable - all the JS relying on them can be removed.
-				'css_selector' => '',
-				'label'        => '',
-				'is_custom'    => false,
-				'is_branded'   => false,
-			];
-		}
-
 		return [
 			'type'         => $button_type,
 			'theme'        => $this->get_button_theme(),
 			'height'       => $this->get_button_height(),
-			'locale'       => apply_filters( 'wc_stripe_payment_request_button_locale', substr( get_locale(), 0, 2 ) ),
 			// Default format is en_US.
-			'is_custom'    => $this->is_custom_button(),
-			'is_branded'   => $this->is_branded_button(),
-			'css_selector' => $this->custom_button_selector(),
-			'branded_type' => $this->get_button_branded_type(),
+			'locale'       => apply_filters( 'wc_stripe_payment_request_button_locale', substr( get_locale(), 0, 2 ) ),
+			'branded_type' => 'default' === $button_type ? 'short' : 'long',
+			// these values are no longer applicable - all the JS relying on them can be removed.
+			'css_selector' => '',
+			'label'        => '',
+			'is_custom'    => false,
+			'is_branded'   => false,
 		];
 	}
 
