@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the WooCommerce Stripe Gateway plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Stripe Gateway 10.5.0\n"
+"Project-Id-Version: WooCommerce Stripe Gateway 10.5.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-gateway-stripe\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-09T18:07:23+00:00\n"
+"POT-Creation-Date: 2026-03-11T17:01:30+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woocommerce-gateway-stripe\n"
@@ -1501,13 +1501,13 @@ msgid "Unable to add payment source."
 msgstr ""
 
 #. translators: %1$s Name, %2$s Username.
-#: includes/class-wc-stripe-customer.php:1137
+#: includes/class-wc-stripe-customer.php:1145
 #, php-format
 msgid "Name: %1$s, Username: %2$s"
 msgstr ""
 
 #. translators: %1$s Name.
-#: includes/class-wc-stripe-customer.php:1141
+#: includes/class-wc-stripe-customer.php:1149
 #, php-format
 msgid "Name: %1$s, Guest"
 msgstr ""
@@ -2158,7 +2158,7 @@ msgstr ""
 #. translators: 1) The error message that was received from Stripe.
 #: includes/class-wc-stripe-webhook-handler.php:1190
 #: includes/class-wc-stripe-webhook-handler.php:1268
-#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3776
+#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3782
 #, php-format
 msgid "Stripe SCA authentication failed. Reason: %s"
 msgstr ""
@@ -2935,23 +2935,23 @@ msgstr ""
 msgid "This payment method type is not available in the selected country."
 msgstr ""
 
-#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3543
+#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3549
 msgid "This represents the fee Stripe collects for the transaction."
 msgstr ""
 
-#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3544
+#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3550
 msgid "Stripe Fee:"
 msgstr ""
 
-#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3582
+#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3588
 msgid "This represents the net total that will be credited to your Stripe bank account. This may be in the currency that is set in your Stripe account."
 msgstr ""
 
-#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3583
+#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3589
 msgid "Stripe Payout:"
 msgstr ""
 
-#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3777
+#: includes/payment-methods/class-wc-stripe-upe-payment-gateway.php:3783
 msgid "Stripe SCA authentication failed."
 msgstr ""
 
@@ -3040,15 +3040,15 @@ msgid "Alipay is a popular wallet in China, operated by Ant Financial Services G
 msgstr ""
 
 #: build/upe-settings.js:1
-#: includes/payment-methods/class-wc-stripe-upe-payment-method-amazon-pay.php:29
-#: includes/payment-methods/class-wc-stripe-upe-payment-method-amazon-pay.php:46
+#: includes/payment-methods/class-wc-stripe-upe-payment-method-amazon-pay.php:55
+#: includes/payment-methods/class-wc-stripe-upe-payment-method-amazon-pay.php:59
 #: client/settings/payment-request-section/index.js:302
 #: client/settings/payment-request-section/index.js:309
 #: client/settings/payment-request-section/index.js:318
 msgid "Amazon Pay"
 msgstr ""
 
-#: includes/payment-methods/class-wc-stripe-upe-payment-method-amazon-pay.php:47
+#: includes/payment-methods/class-wc-stripe-upe-payment-method-amazon-pay.php:60
 msgid "Amazon Pay is a payment method that allows customers to pay with their Amazon account."
 msgstr ""
 
@@ -3583,7 +3583,7 @@ msgstr ""
 #: build/upe-settings.js:1
 #: build/upe-classic.js:1
 #: client/blocks/upe/upe-deferred-intent-creation/blik-code-element.js:26
-#: client/stripe-utils/utils.js:943
+#: client/stripe-utils/utils.js:950
 msgid "BLIK Code is invalid"
 msgstr ""
 

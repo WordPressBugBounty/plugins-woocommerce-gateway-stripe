@@ -1,5 +1,10 @@
 *** Changelog ***
 
+= 10.5.1 - 2026-03-11 =
+* Fix - Reinstate custom appearance logic
+* Fix - Refactor some Amazon Pay helpers to prevent an infinite loop
+* Fix - Clear customer cache after saving a new payment method so the Stripe payment method list has correct data
+
 = 10.5.0 - 2026-03-09 =
 * Update - Add missing metadata to checkout session objects when processing webhook events
 * Fix - Update deprecated WooCommerce block checkout hook from `onCheckoutAfterProcessingWithSuccess` to `onCheckoutSuccess` in the saved token handler
