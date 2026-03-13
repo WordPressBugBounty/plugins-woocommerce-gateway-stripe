@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the WooCommerce Stripe Gateway plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Stripe Gateway 10.5.1\n"
+"Project-Id-Version: WooCommerce Stripe Gateway 10.5.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-gateway-stripe\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-11T17:01:30+00:00\n"
+"POT-Creation-Date: 2026-03-13T08:11:16+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woocommerce-gateway-stripe\n"
@@ -180,7 +180,7 @@ msgid "Stripe charge authorized (Charge ID: %s). Process order to take payment, 
 msgstr ""
 
 #: includes/abstracts/abstract-wc-stripe-payment-gateway.php:887
-#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2291
+#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2305
 msgid "Sorry, we're not accepting prepaid cards at this time. Your credit card has not been charged. Please try with alternative payment method."
 msgstr ""
 
@@ -211,31 +211,31 @@ msgstr ""
 msgid "Refunded %1$s - Refund ID: %2$s - Reason: %3$s"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2256
+#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2270
 msgid "Please accept the terms and conditions first"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2257
+#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2271
 msgid "Please fill in required checkout fields first"
 msgstr ""
 
-#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2292
+#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2306
 msgid "Please enter your IBAN account name."
 msgstr ""
 
-#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2293
+#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2307
 msgid "Please enter your IBAN account number."
 msgstr ""
 
-#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2294
+#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2308
 msgid "We couldn't initiate the payment. Please try again."
 msgstr ""
 
-#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2305
+#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2319
 msgid "Billing First Name and Last Name are required."
 msgstr ""
 
-#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2313
+#: includes/abstracts/abstract-wc-stripe-payment-gateway.php:2327
 msgid "CPF/CNPJ is a required field"
 msgstr ""
 
