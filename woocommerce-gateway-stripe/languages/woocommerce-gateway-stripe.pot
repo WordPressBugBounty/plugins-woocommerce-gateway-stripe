@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the WooCommerce Stripe Gateway plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Stripe Gateway 10.5.2\n"
+"Project-Id-Version: WooCommerce Stripe Gateway 10.5.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-gateway-stripe\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-03-13T08:11:16+00:00\n"
+"POT-Creation-Date: 2026-03-19T13:17:48+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woocommerce-gateway-stripe\n"
@@ -2280,62 +2280,62 @@ msgstr[1] ""
 #: build/amazon-pay-settings.js:1
 #: build/express-checkout-settings.js:1
 #: build/upe-settings.js:1
-#: includes/class-wc-stripe.php:526
+#: includes/class-wc-stripe.php:527
 #: client/entrypoints/amazon-pay-settings/amazon-pay-page.js:30
 #: client/entrypoints/express-checkout-settings/express-checkout-page.js:32
 #: client/settings/settings-manager/index.js:36
 msgid "Settings"
 msgstr ""
 
-#: includes/class-wc-stripe.php:542
+#: includes/class-wc-stripe.php:543
 msgid "View Documentation"
 msgstr ""
 
-#: includes/class-wc-stripe.php:542
+#: includes/class-wc-stripe.php:543
 msgid "Docs"
 msgstr ""
 
-#: includes/class-wc-stripe.php:543
+#: includes/class-wc-stripe.php:544
 msgid "Open a support request at WooCommerce.com"
 msgstr ""
 
-#: includes/class-wc-stripe.php:543
+#: includes/class-wc-stripe.php:544
 msgid "Support"
 msgstr ""
 
-#: includes/class-wc-stripe.php:624
+#: includes/class-wc-stripe.php:625
 msgid "Stripe Bancontact"
 msgstr ""
 
-#: includes/class-wc-stripe.php:625
+#: includes/class-wc-stripe.php:626
 msgid "Stripe Sofort"
 msgstr ""
 
-#: includes/class-wc-stripe.php:626
+#: includes/class-wc-stripe.php:627
 msgid "Stripe giropay"
 msgstr ""
 
-#: includes/class-wc-stripe.php:627
+#: includes/class-wc-stripe.php:628
 msgid "Stripe EPS"
 msgstr ""
 
-#: includes/class-wc-stripe.php:628
+#: includes/class-wc-stripe.php:629
 msgid "Stripe iDEAL"
 msgstr ""
 
-#: includes/class-wc-stripe.php:629
+#: includes/class-wc-stripe.php:630
 msgid "Stripe P24"
 msgstr ""
 
-#: includes/class-wc-stripe.php:630
+#: includes/class-wc-stripe.php:631
 msgid "Stripe Alipay"
 msgstr ""
 
-#: includes/class-wc-stripe.php:631
+#: includes/class-wc-stripe.php:632
 msgid "Stripe SEPA Direct Debit"
 msgstr ""
 
-#: includes/class-wc-stripe.php:632
+#: includes/class-wc-stripe.php:633
 msgid "Stripe Multibanco"
 msgstr ""
 
@@ -2754,7 +2754,7 @@ msgstr ""
 #. translators: %s: field name
 #. translators: %s is an input field name
 #: includes/payment-methods/class-wc-stripe-express-checkout-custom-fields.php:61
-#: client/classic/upe/payment-processing.js:584
+#: client/classic/upe/payment-processing.js:590
 #, php-format,js-format
 msgid "%s is a required field."
 msgstr ""
@@ -3599,7 +3599,7 @@ msgstr ""
 #: build/upe-blocks.js:1
 #: build/upe-classic.js:1
 #: client/blocks/upe/upe-deferred-intent-creation/payment-processor.js:125
-#: client/classic/upe/payment-processing.js:598
+#: client/classic/upe/payment-processing.js:604
 msgid "Invalid or missing payment details. Please ensure the provided payment method is correctly entered."
 msgstr ""
 
@@ -3624,12 +3624,12 @@ msgid "Failed to load payment method due to missing client secret."
 msgstr ""
 
 #: build/upe-classic.js:1
-#: client/classic/upe/payment-processing.js:551
+#: client/classic/upe/payment-processing.js:557
 msgid "Payment failed. Please try again."
 msgstr ""
 
 #: build/upe-classic.js:1
-#: client/classic/upe/payment-processing.js:800
+#: client/classic/upe/payment-processing.js:806
 msgid "There was a problem processing the payment. Please refresh the page to try again."
 msgstr ""
 
