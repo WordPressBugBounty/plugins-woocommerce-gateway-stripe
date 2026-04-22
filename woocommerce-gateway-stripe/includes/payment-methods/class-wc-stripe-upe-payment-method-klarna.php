@@ -38,7 +38,7 @@ class WC_Stripe_UPE_Payment_Method_Klarna extends WC_Stripe_UPE_Payment_Method {
 			WC_Stripe_Currency_Code::SWEDISH_KRONA,
 			WC_Stripe_Currency_Code::UNITED_STATES_DOLLAR,
 		];
-		$this->supported_countries  = [ WC_Stripe_Country_Code::AUSTRALIA, WC_Stripe_Country_Code::AUSTRIA, WC_Stripe_Country_Code::BELGIUM, WC_Stripe_Country_Code::CANADA, WC_Stripe_Country_Code::CROATIA, WC_Stripe_Country_Code::CYPRUS, WC_Stripe_Country_Code::CZECH_REPUBLIC, WC_Stripe_Country_Code::DENMARK, WC_Stripe_Country_Code::ESTONIA, WC_Stripe_Country_Code::FINLAND, WC_Stripe_Country_Code::FRANCE, WC_Stripe_Country_Code::GERMANY, WC_Stripe_Country_Code::GREECE, WC_Stripe_Country_Code::IRELAND, WC_Stripe_Country_Code::ITALY, WC_Stripe_Country_Code::LATVIA, WC_Stripe_Country_Code::LITHUANIA, WC_Stripe_Country_Code::LUXEMBOURG, WC_Stripe_Country_Code::MALTA, WC_Stripe_Country_Code::NETHERLANDS, WC_Stripe_Country_Code::NEW_ZEALAND, WC_Stripe_Country_Code::NORWAY, WC_Stripe_Country_Code::POLAND, WC_Stripe_Country_Code::PORTUGAL, WC_Stripe_Country_Code::ROMANIA, WC_Stripe_Country_Code::SLOVAKIA, WC_Stripe_Country_Code::SLOVENIA, WC_Stripe_Country_Code::SPAIN, WC_Stripe_Country_Code::SWEDEN, WC_Stripe_Country_Code::SWITZERLAND, WC_Stripe_Country_Code::UNITED_KINGDOM, WC_Stripe_Country_Code::UNITED_STATES ];
+		$this->supported_countries  = [ 'AU', 'AT', 'BE', 'CA', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'NZ', 'NO', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'CH', 'GB', 'US' ];
 		$this->label                = __( 'Klarna', 'woocommerce-gateway-stripe' );
 		$this->description          = __(
 			'Allow customers to pay over time with Klarna.',
@@ -76,7 +76,7 @@ class WC_Stripe_UPE_Payment_Method_Klarna extends WC_Stripe_UPE_Payment_Method {
 		$account_country = strtoupper( $account['country'] );
 
 		// Countries in the EEA + UK and Switzerland can transact across all other EEA countries as long as the currency matches.
-		$eea_countries = array_merge( WC_Stripe_Helper::get_european_economic_area_countries(), [ WC_Stripe_Country_Code::SWITZERLAND, WC_Stripe_Country_Code::UNITED_KINGDOM ] );
+		$eea_countries = array_merge( WC_Stripe_Helper::get_european_economic_area_countries(), [ 'CH', 'GB' ] );
 
 		// Countries outside the EEA can only transact with customers in their own country.
 		if ( ! in_array( $account_country, $eea_countries, true ) ) {
@@ -86,24 +86,24 @@ class WC_Stripe_UPE_Payment_Method_Klarna extends WC_Stripe_UPE_Payment_Method {
 		// EEA currencies can only transact with countries where that currency is the standard currency.
 		switch ( get_woocommerce_currency() ) {
 			case WC_Stripe_Currency_Code::SWISS_FRANC:
-				return [ WC_Stripe_Country_Code::SWITZERLAND ];
+				return [ 'CH' ];
 			case WC_Stripe_Currency_Code::CZECH_KORUNA:
-				return [ WC_Stripe_Country_Code::CZECH_REPUBLIC ];
+				return [ 'CZ' ];
 			case WC_Stripe_Currency_Code::DANISH_KRONE:
-				return [ WC_Stripe_Country_Code::DENMARK ];
+				return [ 'DK' ];
 			case WC_Stripe_Currency_Code::NORWEGIAN_KRONE:
-				return [ WC_Stripe_Country_Code::NORWAY ];
+				return [ 'NO' ];
 			case WC_Stripe_Currency_Code::POLISH_ZLOTY:
-				return [ WC_Stripe_Country_Code::POLAND ];
+				return [ 'PL' ];
 			case WC_Stripe_Currency_Code::ROMANIAN_LEU:
-				return [ WC_Stripe_Country_Code::ROMANIA ];
+				return [ 'RO' ];
 			case WC_Stripe_Currency_Code::SWEDISH_KRONA:
-				return [ WC_Stripe_Country_Code::SWEDEN ];
+				return [ 'SE' ];
 			case WC_Stripe_Currency_Code::POUND_STERLING:
-				return [ WC_Stripe_Country_Code::UNITED_KINGDOM ];
+				return [ 'GB' ];
 			case WC_Stripe_Currency_Code::EURO:
 				// EEA countries that use Euro.
-				return [ WC_Stripe_Country_Code::AUSTRIA, WC_Stripe_Country_Code::BELGIUM, WC_Stripe_Country_Code::FINLAND, WC_Stripe_Country_Code::FRANCE, WC_Stripe_Country_Code::GREECE, WC_Stripe_Country_Code::GERMANY, WC_Stripe_Country_Code::IRELAND, WC_Stripe_Country_Code::ITALY, WC_Stripe_Country_Code::NETHERLANDS, WC_Stripe_Country_Code::PORTUGAL, WC_Stripe_Country_Code::SPAIN ];
+				return [ 'AT', 'BE', 'FI', 'FR', 'GR', 'DE', 'IE', 'IT', 'NL', 'PT', 'ES' ];
 		}
 
 		return parent::get_available_billing_countries();
@@ -130,7 +130,7 @@ class WC_Stripe_UPE_Payment_Method_Klarna extends WC_Stripe_UPE_Payment_Method {
 		$account_country = strtoupper( $account['country'] ?? '' );
 
 		// Countries in the EEA + UK and Switzerland can transact across all other EEA countries as long as the currency matches.
-		$eea_countries = array_merge( WC_Stripe_Helper::get_european_economic_area_countries(), [ WC_Stripe_Country_Code::SWITZERLAND, WC_Stripe_Country_Code::UNITED_KINGDOM ] );
+		$eea_countries = array_merge( WC_Stripe_Helper::get_european_economic_area_countries(), [ 'CH', 'GB' ] );
 
 		// Countries outside the EEA can only transact with customers in their own currency.
 		if ( ! in_array( $account_country, $eea_countries, true ) ) {
