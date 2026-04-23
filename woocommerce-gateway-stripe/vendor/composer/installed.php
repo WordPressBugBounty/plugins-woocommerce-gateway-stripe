@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'woocommerce/woocommerce-gateway-stripe',
-        'pretty_version' => 'dev-release/10.6.0',
-        'version' => 'dev-release/10.6.0',
-        'reference' => 'e3b1f3d7b7df5cf368bc2e8ccbe0bf8519310393',
+        'pretty_version' => 'dev-release/10.6.1',
+        'version' => 'dev-release/10.6.1',
+        'reference' => '162f0fddaac2f274551b02d375f8703bc721aa20',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'woocommerce/woocommerce-gateway-stripe' => array(
-            'pretty_version' => 'dev-release/10.6.0',
-            'version' => 'dev-release/10.6.0',
-            'reference' => 'e3b1f3d7b7df5cf368bc2e8ccbe0bf8519310393',
+            'pretty_version' => 'dev-release/10.6.1',
+            'version' => 'dev-release/10.6.1',
+            'reference' => '162f0fddaac2f274551b02d375f8703bc721aa20',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
