@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'WC_REST_Stripe_Agentic_Commerce_Controller' => $baseDir . '/includes/admin/class-wc-rest-stripe-agentic-commerce-controller.php',
     'WC_REST_Stripe_Exit_Survey_Controller' => $baseDir . '/includes/admin/class-wc-rest-stripe-exit-survey-controller.php',
     'WC_Stripe_API_Address' => $baseDir . '/includes/agentic-commerce/class-wc-stripe-api-address.php',
     'WC_Stripe_Agentic_Checkout_Session' => $baseDir . '/includes/agentic-commerce/class-wc-stripe-agentic-checkout-session.php',
@@ -28,4 +29,5 @@ return array(
     'WC_Stripe_Agentic_Shipping_Calculator' => $baseDir . '/includes/agentic-commerce/class-wc-stripe-agentic-shipping-calculator.php',
     'WC_Stripe_Checkout_Sessions_Ajax_Handler' => $baseDir . '/includes/ajax-handlers/class-wc-stripe-checkout-sessions-ajax-handler.php',
     'WC_Stripe_Plugins_Page_Controller' => $baseDir . '/includes/admin/class-wc-stripe-plugins-page-controller.php',
+    'WC_Stripe_REST_Base_Controller' => $baseDir . '/includes/admin/class-wc-stripe-rest-base-controller.php',
 );
