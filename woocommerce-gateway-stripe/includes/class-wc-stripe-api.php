@@ -13,9 +13,9 @@ class WC_Stripe_API {
 	/**
 	 * Stripe API Endpoint
 	 */
-	public const ENDPOINT                     = 'https://api.stripe.com/v1/';
-	public const STRIPE_API_VERSION           = '2025-09-30.clover';
-	public const AGENTIC_COMMERCE_API_VERSION = '2025-12-15.preview';
+	const ENDPOINT                     = 'https://api.stripe.com/v1/';
+	const STRIPE_API_VERSION           = '2025-09-30.clover';
+	const AGENTIC_COMMERCE_API_VERSION = '2025-12-15.preview';
 
 	/**
 	 * The invalid API key error count cache key.
@@ -247,10 +247,7 @@ class WC_Stripe_API {
 			]
 		);
 
-		// Use wp_remote_post() instead of wp_safe_remote_post() as we have a hard-coded URL
-		// and the safe version fails when there are DNS resolution issues.
-		// See https://github.com/woocommerce/woocommerce-gateway-stripe/issues/4801
-		$response = wp_remote_post(
+		$response = wp_safe_remote_post(
 			self::ENDPOINT . $api,
 			[
 				'method'  => $method,
@@ -262,26 +259,7 @@ class WC_Stripe_API {
 
 		$response_headers = wp_remote_retrieve_headers( $response );
 
-		if ( WC_Stripe_API_Outage_Status::is_outage_response( $response ) ) {
-			WC_Stripe_API_Outage_Status::record_outage();
-
-			$error_data = [
-				'stripe_api_key'  => $masked_secret_key,
-				'request'         => $request,
-				'idempotency_key' => $idempotency_key,
-			];
-			self::log_error_response( $response, $api, $method, $error_data );
-
-			throw new WC_Stripe_Exception(
-				print_r( $response, true ),
-				__( 'The Stripe API is temporarily unavailable. Please try again in a few minutes.', 'woocommerce-gateway-stripe' )
-			);
-		}
-
-		WC_Stripe_API_Outage_Status::record_success();
-
-		$response_body_raw = wp_remote_retrieve_body( $response );
-		if ( empty( $response_body_raw ) ) {
+		if ( is_wp_error( $response ) || empty( $response['body'] ) ) {
 			$error_data = [
 				'stripe_api_key'  => $masked_secret_key,
 				'request'         => $request,
@@ -292,7 +270,7 @@ class WC_Stripe_API {
 			throw new WC_Stripe_Exception( print_r( $response, true ), __( 'There was a problem sending a request to the Stripe API endpoint.', 'woocommerce-gateway-stripe' ) );
 		}
 
-		$response_body = json_decode( $response_body_raw );
+		$response_body = json_decode( $response['body'] );
 
 		WC_Stripe_Logger::debug(
 			"Stripe API response: {$method} {$api}",
@@ -344,10 +322,7 @@ class WC_Stripe_API {
 			]
 		);
 
-		// Use wp_remote_get() instead of wp_safe_remote_get() as we have a hard-coded URL
-		// and the safe version fails when there are DNS resolution issues.
-		// See https://github.com/woocommerce/woocommerce-gateway-stripe/issues/4801
-		$response = wp_remote_get(
+		$response = wp_safe_remote_get(
 			self::ENDPOINT . $api,
 			[
 				'method'  => 'GET',
@@ -355,19 +330,6 @@ class WC_Stripe_API {
 				'timeout' => 70,
 			]
 		);
-
-		if ( WC_Stripe_API_Outage_Status::is_outage_response( $response ) ) {
-			WC_Stripe_API_Outage_Status::record_outage();
-
-			self::log_error_response( $response, $api, 'GET' );
-
-			return new WP_Error(
-				'stripe_api_outage',
-				__( 'The Stripe API is temporarily unavailable. Please try again in a few minutes.', 'woocommerce-gateway-stripe' )
-			);
-		}
-
-		WC_Stripe_API_Outage_Status::record_success();
 
 		// If we get a 401 error, we know the secret key is not valid.
 		if ( is_array( $response ) && isset( $response['response'] ) && is_array( $response['response'] ) && isset( $response['response']['code'] ) && 401 === $response['response']['code'] ) {
@@ -407,8 +369,7 @@ class WC_Stripe_API {
 			WC_Stripe_Database_Cache::delete( self::INVALID_API_KEY_ERROR_COUNT_CACHE_KEY );
 		}
 
-		$response_body_raw = wp_remote_retrieve_body( $response );
-		if ( empty( $response_body_raw ) ) {
+		if ( is_wp_error( $response ) || empty( $response['body'] ) ) {
 			$error_data = [
 				'stripe_api_key' => $masked_secret_key,
 			];
@@ -417,7 +378,7 @@ class WC_Stripe_API {
 			return new WP_Error( 'stripe_error', __( 'There was a problem retrieving data from the Stripe API endpoint.', 'woocommerce-gateway-stripe' ) );
 		}
 
-		$response_body = json_decode( $response_body_raw );
+		$response_body = json_decode( $response['body'] );
 
 		WC_Stripe_Logger::debug(
 			"Stripe API response: GET {$api}",

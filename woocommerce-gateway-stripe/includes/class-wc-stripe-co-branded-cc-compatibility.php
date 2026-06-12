@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class WC_Stripe_Co_Branded_CC_Compatibility {
-	public const MIN_WC_VERSION = '8.9.0';
+	const MIN_WC_VERSION = '8.9.0';
 	/**
 	 * Determines whether the current version of WooCommerce is supported.
 	 *

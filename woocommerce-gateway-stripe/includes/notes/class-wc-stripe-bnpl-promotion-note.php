@@ -19,12 +19,12 @@ class WC_Stripe_BNPL_Promotion_Note {
 	/**
 	 * Name of the note for use in the database.
 	 */
-	public const NOTE_NAME = 'wc-stripe-bnpl-promotion-note';
+	const NOTE_NAME = 'wc-stripe-bnpl-promotion-note';
 
 	/**
 	 * Link to learn more about BNPLs.
 	 */
-	public const LEARN_MORE_LINK = 'https://woocommerce.com/document/stripe/setup-and-configuration/additional-payment-methods/';
+	const LEARN_MORE_LINK = 'https://woocommerce.com/document/stripe/setup-and-configuration/additional-payment-methods/';
 
 	/**
 	 * Get the note.

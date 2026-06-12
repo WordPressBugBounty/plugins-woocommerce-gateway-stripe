@@ -34,21 +34,21 @@ class WC_Stripe_Agentic_Commerce_Files_Api_Delivery {
 	 *
 	 * @var string
 	 */
-	public const FILES_API_ENDPOINT = 'https://files.stripe.com/v1/files';
+	const FILES_API_ENDPOINT = 'https://files.stripe.com/v1/files';
 
 	/**
 	 * Stripe Data Management API endpoint.
 	 *
 	 * @var string
 	 */
-	public const IMPORT_SETS_ENDPOINT = 'https://api.stripe.com/v1/data_management/import_sets';
+	const IMPORT_SETS_ENDPOINT = 'https://api.stripe.com/v1/data_management/import_sets';
 
 	/**
 	 * Stripe Files API content endpoint.
 	 *
 	 * @var string
 	 */
-	public const FILES_CONTENT_ENDPOINT = 'https://files.stripe.com/v1/files/';
+	const FILES_CONTENT_ENDPOINT = 'https://files.stripe.com/v1/files/';
 
 	/**
 	 * Stripe API version for Data Management (preview).
@@ -56,7 +56,7 @@ class WC_Stripe_Agentic_Commerce_Files_Api_Delivery {
 	 *
 	 * @var string
 	 */
-	public const API_VERSION = '2025-09-30.clover;udap_beta=v1';
+	const API_VERSION = '2025-09-30.clover;udap_beta=v1';
 
 	/**
 	 * Stripe secret key.
@@ -174,13 +174,9 @@ class WC_Stripe_Agentic_Commerce_Files_Api_Delivery {
 		);
 
 		// Step 2: Create ImportSet to trigger processing.
-		// Pass missing/null status through as an empty string so the integration
-		// can fall back to `pending` when an import_set_id was returned. Coercing
-		// to the literal `'unknown'` here would defeat that fallback and surface
-		// the dashboard's "?" badge for in-flight syncs.
 		$import_set    = $this->create_import_set( $file_id, $standard_data_format );
 		$import_set_id = $import_set['id'] ?? '';
-		$status        = $import_set['status'] ?? '';
+		$status        = $import_set['status'] ?? 'unknown';
 
 		WC_Stripe_Logger::info(
 			"Agentic Commerce: {$log_prefix} ImportSet created",

@@ -18,14 +18,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 class WC_Stripe_UPE_Payment_Method_Amazon_Pay extends WC_Stripe_UPE_Payment_Method {
 	use WC_Stripe_Subscriptions_Trait;
 
-	public const STRIPE_ID = WC_Stripe_Payment_Methods::AMAZON_PAY;
+	const STRIPE_ID = WC_Stripe_Payment_Methods::AMAZON_PAY;
 
 	/**
-	 * Stripe account countries that may enable Amazon Pay.
+	 * Supported countries for Amazon Pay.
 	 *
 	 * @var string[]
 	 */
-	protected const SUPPORTED_ACCOUNT_COUNTRIES = [
+	private const SUPPORTED_COUNTRIES = [
 		WC_Stripe_Country_Code::AUSTRIA,
 		WC_Stripe_Country_Code::BELGIUM,
 		WC_Stripe_Country_Code::CYPRUS,
@@ -71,7 +71,8 @@ class WC_Stripe_UPE_Payment_Method_Amazon_Pay extends WC_Stripe_UPE_Payment_Meth
 		parent::__construct();
 		$this->stripe_id            = self::STRIPE_ID;
 		$this->title                = __( 'Amazon Pay', 'woocommerce-gateway-stripe' );
-		$this->supported_currencies = self::get_amazon_pay_supported_currencies();
+		$this->supported_currencies = self::SUPPORTED_CURRENCIES;
+		$this->supported_countries  = self::SUPPORTED_COUNTRIES;
 		$this->is_reusable          = true;
 		$this->label                = __( 'Amazon Pay', 'woocommerce-gateway-stripe' );
 		$this->description          = __(
@@ -82,6 +83,14 @@ class WC_Stripe_UPE_Payment_Method_Amazon_Pay extends WC_Stripe_UPE_Payment_Meth
 
 		// Check if subscriptions are enabled and add support for them.
 		$this->maybe_init_subscriptions();
+	}
+
+	/**
+	 * Returns string representing payment method type
+	 * to query to retrieve saved payment methods from Stripe.
+	 */
+	public function get_retrievable_type() {
+		return $this->get_id();
 	}
 
 	/**
@@ -132,7 +141,7 @@ class WC_Stripe_UPE_Payment_Method_Amazon_Pay extends WC_Stripe_UPE_Payment_Meth
 	public static function is_amazon_pay_available_for_account_country() {
 		$account_country = WC_Stripe::get_instance()->account->get_account_country();
 
-		return in_array( $account_country, self::SUPPORTED_ACCOUNT_COUNTRIES, true );
+		return in_array( $account_country, self::SUPPORTED_COUNTRIES, true );
 	}
 
 	/**

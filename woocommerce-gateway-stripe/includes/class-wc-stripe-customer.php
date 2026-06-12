@@ -31,12 +31,12 @@ class WC_Stripe_Customer {
 	/**
 	 * String prefix for Stripe payment methods request transient.
 	 */
-	public const PAYMENT_METHODS_TRANSIENT_KEY = 'stripe_payment_methods_';
+	const PAYMENT_METHODS_TRANSIENT_KEY = 'stripe_payment_methods_';
 
 	/**
 	 * Queryable Stripe payment method types.
 	 */
-	public const STRIPE_PAYMENT_METHODS = [
+	const STRIPE_PAYMENT_METHODS = [
 		WC_Stripe_UPE_Payment_Method_CC::STRIPE_ID,
 		WC_Stripe_UPE_Payment_Method_LINK::STRIPE_ID,
 		WC_Stripe_UPE_Payment_Method_Sepa::STRIPE_ID,
@@ -687,7 +687,6 @@ class WC_Stripe_Customer {
 							$wc_token->set_expiry_month( $response->card->exp_month );
 							$wc_token->set_expiry_year( $response->card->exp_year );
 							$wc_token->set_fingerprint( $response->card->fingerprint );
-							$wc_token->set_wallet_type( (string) ( $response->card->wallet->type ?? '' ) );
 						}
 						break;
 				}
