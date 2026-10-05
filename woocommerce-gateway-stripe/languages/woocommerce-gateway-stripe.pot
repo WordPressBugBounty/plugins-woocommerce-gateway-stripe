@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the WooCommerce Stripe Gateway plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: WooCommerce Stripe Gateway 11.0.0\n"
+"Project-Id-Version: WooCommerce Stripe Gateway 11.0.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-gateway-stripe\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-08T14:56:40+00:00\n"
+"POT-Creation-Date: 2026-10-05T14:53:27+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: woocommerce-gateway-stripe\n"
@@ -2323,7 +2323,7 @@ msgstr ""
 #: includes/class-wc-stripe-intent-controller.php:87
 #: includes/class-wc-stripe-intent-controller.php:773
 #: includes/class-wc-stripe-intent-controller.php:879
-#: includes/class-wc-stripe-intent-controller.php:1498
+#: includes/class-wc-stripe-intent-controller.php:1499
 msgid "CSRF verification failed."
 msgstr ""
 
@@ -2368,8 +2368,8 @@ msgid "Unable to find a matching order."
 msgstr ""
 
 #: includes/class-wc-stripe-intent-controller.php:671
-#: includes/class-wc-stripe-intent-controller.php:1413
-#: includes/class-wc-stripe-intent-controller.php:1420
+#: includes/class-wc-stripe-intent-controller.php:1414
+#: includes/class-wc-stripe-intent-controller.php:1421
 msgid "We're not able to add this payment method. Please refresh the page and try again."
 msgstr ""
 
@@ -2379,53 +2379,53 @@ msgstr ""
 msgid "Your payment was cancelled. Please try again or use a different payment method."
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1076
+#: includes/class-wc-stripe-intent-controller.php:1077
 msgid "Payments as per agreement"
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1209
+#: includes/class-wc-stripe-intent-controller.php:1210
 msgid "There was a problem processing the payment."
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1235
+#: includes/class-wc-stripe-intent-controller.php:1236
 msgid "Please reach out to us if the problem persists."
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1390
+#: includes/class-wc-stripe-intent-controller.php:1391
 msgid "You cannot add a new payment method so soon after the previous one."
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1395
+#: includes/class-wc-stripe-intent-controller.php:1396
 msgid "Unable to verify your request. Please refresh the page and try again."
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1407
+#: includes/class-wc-stripe-intent-controller.php:1408
 msgid "Captcha verification failed. Please try again."
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1441
+#: includes/class-wc-stripe-intent-controller.php:1442
 msgid "There was an error adding this payment method. Please refresh the page and try again"
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1502
-#: includes/class-wc-stripe-intent-controller.php:1508
-#: includes/class-wc-stripe-intent-controller.php:1519
+#: includes/class-wc-stripe-intent-controller.php:1503
+#: includes/class-wc-stripe-intent-controller.php:1509
+#: includes/class-wc-stripe-intent-controller.php:1520
 msgid "We're not able to process this subscription change payment request payment. Please try again later."
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1513
+#: includes/class-wc-stripe-intent-controller.php:1514
 msgid "You do not have permission to update this subscription."
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1526
+#: includes/class-wc-stripe-intent-controller.php:1527
 msgid "We can't process your payment method change at this time. Please try again later."
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1529
+#: includes/class-wc-stripe-intent-controller.php:1530
 msgid "Payment method updated."
 msgstr ""
 
-#: includes/class-wc-stripe-intent-controller.php:1547
+#: includes/class-wc-stripe-intent-controller.php:1548
 msgid "Payment method updated for all your current subscriptions."
 msgstr ""
 
