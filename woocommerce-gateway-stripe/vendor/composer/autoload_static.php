@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit0237d0d14a279f109b48e54adf98276d
+class ComposerStaticInitda4b3ee0b79bfb0ab685e290c9645ddd
 {
     public static $classMap = array (
         'Allowed_Payment_Request_Button_Types_Update' => __DIR__ . '/../..' . '/includes/migrations/class-allowed-payment-request-button-types-update.php',
@@ -59,6 +59,7 @@ class ComposerStaticInit0237d0d14a279f109b48e54adf98276d
         'WC_Stripe_Agentic_Customize_Checkout_Line_Item' => __DIR__ . '/../..' . '/includes/agentic-commerce/class-wc-stripe-agentic-customize-checkout-line-item.php',
         'WC_Stripe_Agentic_Line_Item' => __DIR__ . '/../..' . '/includes/agentic-commerce/class-wc-stripe-agentic-line-item.php',
         'WC_Stripe_Agentic_Shipping_Calculator' => __DIR__ . '/../..' . '/includes/agentic-commerce/class-wc-stripe-agentic-shipping-calculator.php',
+        'WC_Stripe_Agentic_Shipping_Package_Builder' => __DIR__ . '/../..' . '/includes/agentic-commerce/class-wc-stripe-agentic-shipping-package-builder.php',
         'WC_Stripe_Checkout_Session_Lifecycle' => __DIR__ . '/../..' . '/includes/class-wc-stripe-checkout-session-lifecycle.php',
         'WC_Stripe_Checkout_Session_Manager' => __DIR__ . '/../..' . '/includes/class-wc-stripe-checkout-session-manager.php',
         'WC_Stripe_Checkout_Sessions_Ajax_Handler' => __DIR__ . '/../..' . '/includes/ajax-handlers/class-wc-stripe-checkout-sessions-ajax-handler.php',
@@ -72,6 +73,7 @@ class ComposerStaticInit0237d0d14a279f109b48e54adf98276d
         'WC_Stripe_Express_Checkout_Add_Change_Payment_Method_Location_Update' => __DIR__ . '/../..' . '/includes/migrations/class-wc-stripe-express-checkout-add-change-payment-method-location-update.php',
         'WC_Stripe_Express_Checkout_Button_States' => __DIR__ . '/../..' . '/includes/constants/class-wc-stripe-express-checkout-button-states.php',
         'WC_Stripe_Express_Checkout_Custom_Fields' => __DIR__ . '/../..' . '/includes/payment-methods/class-wc-stripe-express-checkout-custom-fields.php',
+        'WC_Stripe_Express_Checkout_Password_Cleanup' => __DIR__ . '/../..' . '/includes/migrations/class-wc-stripe-express-checkout-password-cleanup.php',
         'WC_Stripe_Fingerprint_Trait' => __DIR__ . '/../..' . '/includes/payment-tokens/trait-wc-stripe-fingerprint.php',
         'WC_Stripe_Hong_Kong_States' => __DIR__ . '/../..' . '/includes/constants/class-wc-stripe-hong-kong-states.php',
         'WC_Stripe_Hook_Categories' => __DIR__ . '/../..' . '/includes/constants/class-wc-stripe-hook-categories.php',
@@ -101,7 +103,7 @@ class ComposerStaticInit0237d0d14a279f109b48e54adf98276d
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->classMap = ComposerStaticInit0237d0d14a279f109b48e54adf98276d::$classMap;
+            $loader->classMap = ComposerStaticInitda4b3ee0b79bfb0ab685e290c9645ddd::$classMap;
 
         }, null, ClassLoader::class);
     }
